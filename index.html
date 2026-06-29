@@ -33,10 +33,19 @@
 
 /* ─── Reset ───────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:rgba(232,227,216,.55);
+  pointer-events:none;
+  z-index:0;
+}
+#shell{position:relative;z-index:1}
 html,body{height:100%}
 body{
   font-family:var(--ff-body);
   background:var(--bg) url('bg.png') center center / cover no-repeat fixed;
+  isolation:isolate;
   color:var(--ink);
   font-size:15px;
   line-height:1.5;
