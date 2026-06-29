@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tradecard</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4A2740">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Variables ─────────────────────────────────────────── */
+:root {
+  --bg:        #E8E3D8;
+  --paper:     #F4F1EA;
+  --plum:      #4A2740;
+  --plum-mid:  #7D4566;
+  --ink:       #2B2620;
+  --brass:     #C9A86A;
+  --hairline:  rgba(43,38,32,.14);
+  --tick:      rgba(43,38,32,.28);
+
+  --trade-base:   var(--plum);
+  --trade-accent: var(--plum-mid);
+  --trade-dark:   #321C2C;
+
+  --radius: 2px;
+  --ff-display: 'Space Grotesk', sans-serif;
+  --ff-body:    'Inter', sans-serif;
+  --ff-mono:    'JetBrains Mono', monospace;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: var(--ff-body);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100%;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Utility ───────────────────────────────────────────── */
+.mono  { font-family: var(--ff-mono); }
+.label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); opacity: .55; }
+.hairline { border: none; border-top: 1px solid var(--hairline); }
+.hidden { display: none !important; }
+
+/* ── Tick-mark corners ─────────────────────────────────── */
+.ticked {
+  position: relative;
+}
+.ticked::before, .ticked::after,
+.ticked > .tick-bl, .ticked > .tick-br {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  border-color: var(--tick);
+  border-style: solid;
+  pointer-events: none;
+}
+.ticked::before  { top: 0; left: 0;  border-width: 1px 0 0 1px; }
+.ticked::after   { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.ticked > .tick-bl { bottom: 0; left: 0;  border-width: 0 0 1px 1px; }
+.ticked > .tick-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+/* ── Navigation shell ──────────────────────────────────── */
+#app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+#top-bar {
+  background: var(--plum);
+  color: #F4F1EA;
+  padding: 0 16px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+#top-bar-title {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: .01em;
+  flex: 1;
+}
+#btn-back {
+  color: #F4F1EA;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .85;
+}
+#btn-back:hover { opacity: 1; }
+
+#main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Bottom nav ────────────────────────────────────────── */
+#bottom-nav {
+  background: var(--paper);
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1;
+  padding: 10px 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: .45;
+  transition: opacity .15s;
+}
+.nav-btn svg { width: 20px; height: 20px; }
+.nav-btn.active { opacity: 1; color: var(--plum); }
+
+/* ── Screens ───────────────────────────────────────────── */
+.screen { display: none; padding: 16px; }
+.screen.active { display: block; }
+
+/* ── Home screen ───────────────────────────────────────── */
+#screen-home .toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+#search-input {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+#search-input:focus { border-color: var(--plum-mid); }
+
+#filter-trade {
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--ff-mono);
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+}
+
+.sort-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.sort-chip {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 1px;
+  color: var(--ink);
+  opacity: .6;
+  cursor: pointer;
+  background: var(--paper);
+}
+.sort-chip.active { opacity: 1; border-color: var(--plum-mid); color: var(--plum); background: #f4eef8; }
+
+#trade-list { display: flex; flex-direction: column; gap: 8px; }
+
+.trade-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow .15s;
+  display: flex;
+}
+.trade-card:hover { box-shadow: 0 2px 12px rgba(74,39,64,.12); }
+
+.trade-card-accent {
+  width: 4px;
+  flex-shrink: 0;
+  background: var(--trade-accent);
+}
+.trade-card-body {
+  flex: 1;
+  padding: 12px 14px;
+}
+.trade-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+.trade-card-name {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+}
+.trade-card-trade {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  opacity: .5;
+}
+.trade-card-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+.dots-rating { display: flex; gap: 3px; }
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--hairline);
+  border: 1px solid currentColor;
+}
+.dot.filled { background: currentColor; }
+.would-tag {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 1px;
+}
+.would-yes   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.would-no    { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+.would-maybe { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+
+.trade-card-date {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  opacity: .45;
+  margin-left: auto;
+}
+.verified-badge {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  padding: 1px 5px;
+  border-radius: 1px;
+}
+
+/* FAB */
+#fab-add {
+  position: fixed;
+  bottom: 72px;
+  right: 20px;
+  width: 52px; height: 52px;
+  background: var(--plum);
+  color: #F4F1EA;
+  border-radius: 50%;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(74,39,64,.35);
+  z-index: 90;
+  transition: transform .15s, box-shadow .15s;
+}
+#fab-add:hover { transform: scale(1.07); box-shadow: 0 6px 20px rgba(74,39,64,.45); }
+
+/* ── Trade detail ──────────────────────────────────────── */
+#screen-detail { padding: 0; }
+
+.detail-header {
+  background: var(--trade-base);
+  color: #F4F1EA;
+  padding: 20px 16px 0;
+  position: relative;
+  overflow: hidden;
+}
+.detail-header-ticks::before,
+.detail-header-ticks::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: rgba(244,241,234,.25);
+  border-style: solid;
+}
+.detail-header-ticks::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.detail-header-ticks::after  { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+
+.detail-iso { position: absolute; right: 16px; top: 12px; opacity: .85; }
+.detail-trade-label {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .65;
+  margin-bottom: 4px;
+}
+.detail-name {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -.01em;
+  margin-bottom: 6px;
+}
+.detail-phone {
+  font-family: var(--ff-mono);
+  font-size: 14px;
+  opacity: .8;
+  margin-bottom: 12px;
+}
+.detail-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 8px;
+}
+.detail-tab {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  color: rgba(244,241,234,.6);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .12s, border-color .12s;
+}
+.detail-tab.active {
+  color: #F4F1EA;
+  border-bottom-color: var(--trade-accent);
+}
+
+.detail-body { padding: 16px; }
+.detail-panel { display: none; }
+.detail-panel.active { display: block; }
+
+.spec-row {
+  display: flex;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline);
+  gap: 12px;
+}
+.spec-key {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .5;
+  width: 120px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.spec-val { flex: 1; font-size: 14px; }
+
+.verdict-box {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 16px 0;
+  border-left: 3px solid var(--trade-accent);
+}
+
+/* Action buttons */
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.btn {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity .12s;
+}
+.btn:hover { opacity: .8; }
+.btn-primary {
+  background: var(--trade-accent, var(--plum-mid));
+  color: #F4F1EA;
+  border: none;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+}
+.btn-danger {
+  background: transparent;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+/* Quote cards */
+.quote-item {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.quote-amount {
+  font-family: var(--ff-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--trade-accent, var(--plum-mid));
+  margin-bottom: 4px;
+}
+.quote-meta { font-size: 13px; opacity: .6; }
+.quote-outcome {
+  display: inline-block;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 1px;
+  margin-top: 6px;
+}
+.outcome-accepted  { background: #e8f5e9; color: #2e7d32; }
+.outcome-declined  { background: #fce4ec; color: #c62828; }
+.outcome-no-response { background: #f5f5f5; color: #616161; }
+
+/* Photo grid */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 12px;
+}
+.photo-thumb {
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 1px;
+  cursor: pointer;
+  width: 100%;
+}
+.photo-add-btn {
+  aspect-ratio: 1;
+  border: 1px dashed var(--hairline);
+  border-radius: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--plum-mid);
+  cursor: pointer;
+  background: var(--paper);
+}
+
+/* ── Add/Edit form ─────────────────────────────────────── */
+.form-section {
+  margin-bottom: 24px;
+}
+.form-section-title {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .5;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hairline);
+}
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .55;
+  margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--plum-mid);
+}
+.field textarea { resize: vertical; min-height: 72px; }
+
+.rating-picker { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.rating-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--plum-mid);
+  cursor: pointer;
+  transition: background .12s;
+}
+.rating-dot.on { background: var(--plum-mid); }
+
+.would-picker { display: flex; gap: 6px; margin-top: 4px; }
+.would-option {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--paper);
+  transition: all .12s;
+}
+.would-option.selected-yes   { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+.would-option.selected-no    { background: #fce4ec; color: #c62828; border-color: #ef9a9a; }
+.would-option.selected-maybe { background: #fff8e1; color: #f57f17; border-color: #ffe082; }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.checkbox-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--plum-mid); }
+
+/* ── Jobs screen ───────────────────────────────────────── */
+.job-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.job-card:hover { box-shadow: 0 2px 10px rgba(74,39,64,.1); }
+.job-title {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.job-meta {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  opacity: .5;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ── Share card ────────────────────────────────────────── */
+#screen-share { padding: 0 16px 24px; }
+.share-card-wrap {
+  margin: 16px auto;
+  max-width: 380px;
+}
+.share-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.share-header {
+  background: var(--trade-base);
+  color: #F4F1EA;
+  padding: 18px 20px 14px;
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+}
+.share-header::before, .share-header::after,
+.share-header > .tick-bl, .share-header > .tick-br {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: rgba(244,241,234,.3);
+  border-style: solid;
+}
+.share-header::before { top: 6px; left: 6px; border-width: 1px 0 0 1px; }
+.share-header::after  { top: 6px; right: 6px; border-width: 1px 1px 0 0; }
+.share-header > .tick-bl { bottom: 6px; left: 6px; border-width: 0 0 1px 1px; }
+.share-header > .tick-br { bottom: 6px; right: 6px; border-width: 0 1px 1px 0; }
+
+.share-header-iso {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: .8;
+}
+.share-trade-label {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .6;
+  margin-bottom: 3px;
+}
+.share-name {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+.share-phone {
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  opacity: .7;
+}
+.share-verified {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  padding: 1px 5px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.share-body { padding: 14px 20px; }
+
+.share-rule { border: none; border-top: 1px solid var(--hairline); margin: 10px 0; }
+
+.share-data-row {
+  display: flex;
+  padding: 5px 0;
+  font-size: 13px;
+}
+.share-data-key {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .45;
+  width: 110px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.share-data-val { font-family: var(--ff-mono); font-size: 12px; }
+
+.share-verdict {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-style: italic;
+  opacity: .8;
+}
+
+.share-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.share-dots { display: flex; gap: 4px; }
+.share-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--hairline);
+}
+.share-dot.on { background: var(--trade-accent); }
+.would-stamp {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border: 1px solid var(--trade-accent);
+  color: var(--trade-accent);
+  border-radius: 1px;
+}
+.would-stamp.no-stamp { border-color: #ef9a9a; color: #c62828; }
+
+.share-byline {
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .07em;
+  opacity: .3;
+  padding: 8px 0 4px;
+}
+
+.share-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+/* ── Settings screen ───────────────────────────────────── */
+.settings-section { margin-bottom: 24px; }
+.settings-title {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .5;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hairline);
+}
+.settings-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings-row-label { font-size: 14px; }
+.settings-row-sub {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  opacity: .45;
+  margin-top: 2px;
+}
+
+/* ── Modal ─────────────────────────────────────────────── */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43,38,32,.45);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+#modal-overlay.hidden { display: none; }
+.modal-sheet {
+  background: var(--paper);
+  border-radius: 8px 8px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px 16px 32px;
+}
+.modal-title {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 17px;
+  margin-bottom: 16px;
+}
+.modal-close {
+  float: right;
+  font-size: 22px;
+  color: var(--ink);
+  opacity: .5;
+  margin-top: -4px;
+}
+
+/* ── Empty state ───────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .35; }
+.empty-title {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 17px;
+  margin-bottom: 6px;
+  opacity: .6;
+}
+.empty-sub { font-size: 14px; opacity: .4; }
+
+/* ── Lightbox ──────────────────────────────────────────── */
+#lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#lightbox.hidden { display: none; }
+#lightbox img { max-width: 95vw; max-height: 90vh; object-fit: contain; }
+#lightbox-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  opacity: .7;
+}
+
+/* ── Reminder badges ───────────────────────────────────── */
+.reminder-badge {
+  display: inline-block;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc02;
+  border-radius: 1px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="app-shell">
+  <div id="top-bar">
+    <button id="btn-back" class="hidden" aria-label="Back">&#8592;</button>
+    <div id="top-bar-title">Tradecard</div>
+    <div id="top-bar-actions"></div>
+  </div>
+
+  <div id="main-content">
+    <!-- Home screen -->
+    <div id="screen-home" class="screen active">
+      <div class="toolbar">
+        <input id="search-input" type="search" placeholder="Search contacts…" autocomplete="off">
+        <select id="filter-trade">
+          <option value="">All trades</option>
+        </select>
+      </div>
+      <div class="sort-bar">
+        <button class="sort-chip active" data-sort="lastUsed">Last used</button>
+        <button class="sort-chip" data-sort="rating">Rating</button>
+        <button class="sort-chip" data-sort="name">Name</button>
+      </div>
+      <div id="trade-list"></div>
+    </div>
+
+    <!-- Trade detail screen -->
+    <div id="screen-detail" class="screen">
+      <div class="detail-header detail-header-ticks" id="detail-header">
+        <div class="detail-trade-label" id="detail-trade-label"></div>
+        <div class="detail-name" id="detail-name"></div>
+        <div class="detail-phone" id="detail-phone"></div>
+        <div id="detail-header-badges"></div>
+        <div class="detail-iso" id="detail-iso"></div>
+        <div class="detail-tabs" id="detail-tabs">
+          <button class="detail-tab active" data-tab="overview">Overview</button>
+          <button class="detail-tab" data-tab="quotes">Quotes</button>
+          <button class="detail-tab" data-tab="photos">Photos</button>
+          <button class="detail-tab" data-tab="notes">Notes</button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div id="tab-overview" class="detail-panel active"></div>
+        <div id="tab-quotes"   class="detail-panel"></div>
+        <div id="tab-photos"   class="detail-panel"></div>
+        <div id="tab-notes"    class="detail-panel"></div>
+      </div>
+    </div>
+
+    <!-- Add/Edit form screen -->
+    <div id="screen-form" class="screen">
+      <form id="trade-form">
+        <div class="form-section">
+          <div class="form-section-title">Contact</div>
+          <div class="field">
+            <label>Full name *</label>
+            <input type="text" id="f-name" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" id="f-phone" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Trade</div>
+          <div class="field">
+            <label>Trade *</label>
+            <select id="f-trade" required>
+              <option value="">Select trade…</option>
+            </select>
+          </div>
+          <div class="field" id="f-jobtype-wrap" style="display:none">
+            <label>Job type</label>
+            <select id="f-jobtype">
+              <option value="">General</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Contact source</label>
+            <select id="f-source">
+              <option value="">—</option>
+              <option>Referral</option>
+              <option>Google</option>
+              <option>Facebook group</option>
+              <option>Neighbour</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Rating</div>
+          <div class="field">
+            <label>Rating</label>
+            <div class="rating-picker" id="rating-picker">
+              <div class="rating-dot" data-v="1"></div>
+              <div class="rating-dot" data-v="2"></div>
+              <div class="rating-dot" data-v="3"></div>
+              <div class="rating-dot" data-v="4"></div>
+              <div class="rating-dot" data-v="5"></div>
+            </div>
+            <input type="hidden" id="f-rating" value="0">
+          </div>
+          <div class="field">
+            <label>Would use again?</label>
+            <div class="would-picker">
+              <button type="button" class="would-option" data-v="yes">Yes</button>
+              <button type="button" class="would-option" data-v="maybe">Maybe</button>
+              <button type="button" class="would-option" data-v="no">No</button>
+            </div>
+            <input type="hidden" id="f-would" value="">
+          </div>
+          <div class="field">
+            <label>One-line verdict (shown on share card)</label>
+            <input type="text" id="f-verdict" placeholder="e.g. Fast, tidy, fair pricing. Came back same day." maxlength="120">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Details</div>
+          <div class="field">
+            <label>Last used date</label>
+            <input type="date" id="f-lastused">
+          </div>
+          <div class="field">
+            <label>Availability notes</label>
+            <input type="text" id="f-availability" placeholder="e.g. Weekends only, booked 3 weeks out">
+          </div>
+          <div class="field">
+            <label>Suburb / area</label>
+            <input type="text" id="f-suburb" placeholder="e.g. Northside">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="f-verified">
+            <label for="f-verified" style="font-size:14px;opacity:1;letter-spacing:normal;text-transform:none;margin:0">Licensed / verified</label>
+          </div>
+          <div class="field" id="f-licexpiry-wrap">
+            <label>Licence / insurance expiry</label>
+            <input type="date" id="f-licexpiry">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Private notes</div>
+          <div class="field">
+            <label>Notes (never shown on share card)</label>
+            <textarea id="f-notes" placeholder="Parking notes, personality quirks, follow-up reminders…"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="submit" class="btn btn-primary" style="flex:1">Save contact</button>
+          <button type="button" id="btn-cancel-form" class="btn btn-outline">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Jobs screen -->
+    <div id="screen-jobs" class="screen">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div></div>
+        <button class="btn btn-primary" id="btn-add-job" style="background:var(--plum)">+ New project</button>
+      </div>
+      <div id="jobs-list"></div>
+    </div>
+
+    <!-- Share card screen -->
+    <div id="screen-share" class="screen">
+      <div class="share-card-wrap">
+        <div id="share-card-preview"></div>
+      </div>
+      <div class="share-actions">
+        <button class="btn btn-primary" id="btn-copy-card" style="background:var(--plum)">Copy as image</button>
+        <button class="btn btn-outline" id="btn-share-text">Share text</button>
+      </div>
+      <p style="text-align:center;font-family:var(--ff-mono);font-size:10px;opacity:.35;margin-top:12px;">Screenshot the card above to share it.</p>
+    </div>
+
+    <!-- Settings screen -->
+    <div id="screen-settings" class="screen">
+      <div class="settings-section">
+        <div class="settings-title">Data</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Export backup</div>
+            <div class="settings-row-sub">Download all contacts and jobs as JSON</div>
+          </div>
+          <button class="btn btn-outline" id="btn-export">Export</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Import backup</div>
+            <div class="settings-row-sub">Restore from a previous export</div>
+          </div>
+          <button class="btn btn-outline" id="btn-import-trigger">Import</button>
+          <input type="file" id="btn-import" accept=".json" style="display:none">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Clear all data</div>
+            <div class="settings-row-sub">Permanently delete everything</div>
+          </div>
+          <button class="btn btn-danger" id="btn-clear-data">Clear</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">Reminders</div>
+        <div id="reminders-list"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">About</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Tradecard</div>
+            <div class="settings-row-sub">Version 1.0 · Part of the Signal9 Apps family</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-screen="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/></svg>
+      Contacts
+    </button>
+    <button class="nav-btn" data-screen="jobs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="1"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Projects
+    </button>
+    <button class="nav-btn" data-screen="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- FAB -->
+<button id="fab-add" aria-label="Add contact">+</button>
+
+<!-- Modal overlay (for add-quote, add-job) -->
+<div id="modal-overlay" class="hidden">
+  <div class="modal-sheet">
+    <button class="modal-close" id="modal-close-btn">&#215;</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="hidden">
+  <span id="lightbox-close">&#215;</span>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA / DB
+═══════════════════════════════════════════════ */
+const DB_NAME = 'tradecard';
+const DB_VER  = 1;
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('contacts')) {
+        const s = d.createObjectStore('contacts', { keyPath: 'id' });
+        s.createIndex('trade', 'trade');
+        s.createIndex('lastUsed', 'lastUsed');
+      }
+      if (!d.objectStoreNames.contains('jobs')) {
+        d.createObjectStore('jobs', { keyPath: 'id' });
+      }
+      if (!d.objectStoreNames.contains('quotes')) {
+        const q = d.createObjectStore('quotes', { keyPath: 'id' });
+        q.createIndex('contactId', 'contactId');
+        q.createIndex('jobId', 'jobId');
+      }
+      if (!d.objectStoreNames.contains('photos')) {
+        const p = d.createObjectStore('photos', { keyPath: 'id' });
+        p.createIndex('contactId', 'contactId');
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+function tx(store, mode = 'readonly') {
+  return db.transaction(store, mode).objectStore(store);
+}
+function getAll(store)     { return new Promise((r,j)=>{ const req=tx(store).getAll(); req.onsuccess=e=>r(e.target.result); req.onerror=e=>j(e.target.error); }); }
+function getById(store,id) { return new Promise((r,j)=>{ const req=tx(store).get(id); req.onsuccess=e=>r(e.target.result); req.onerror=e=>j(e.target.error); }); }
+function put(store,obj)    { return new Promise((r,j)=>{ const req=tx(store,'readwrite').put(obj); req.onsuccess=e=>r(e.target.result); req.onerror=e=>j(e.target.error); }); }
+function del(store,id)     { return new Promise((r,j)=>{ const req=tx(store,'readwrite').delete(id); req.onsuccess=e=>r(e.target.result); req.onerror=e=>j(e.target.error); }); }
+function getByIndex(store,idx,val) {
+  return new Promise((r,j)=>{ const req=tx(store).index(idx).getAll(val); req.onsuccess=e=>r(e.target.result); req.onerror=e=>j(e.target.error); });
+}
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+/* ═══════════════════════════════════════════════
+   TRADE TAXONOMY
+═══════════════════════════════════════════════ */
+const TRADES = [
+  { name:'Builder/Carpenter',       jobs:['Renovation','New build','Extension','Decking','Framing','Cabinetry/joinery','Repairs'] },
+  { name:'Plumber',                 jobs:['General plumbing','Gas fitting','Drainage','Waterproofing','Pool/spa','Hot water system'] },
+  { name:'Electrician',             jobs:['General electrical','Solar','Security/alarms','Smart home','Switchboard/safety'] },
+  { name:'Painter',                 jobs:['Interior','Exterior','Roof painting'] },
+  { name:'Tiler',                   jobs:['Bathroom','Kitchen','Floors','Outdoor/paving tiles'] },
+  { name:'Roofer',                  jobs:['Repairs','Full replacement','Gutters/downpipes','Leak detection'] },
+  { name:'Bricklayer/Stonemason',   jobs:[] },
+  { name:'Concreter',               jobs:[] },
+  { name:'Plasterer',               jobs:[] },
+  { name:'Landscaper/Gardener',     jobs:['Garden design/planting','Paving','Retaining walls','Irrigation','Lawn/maintenance'] },
+  { name:'Fencing contractor',      jobs:[] },
+  { name:'Locksmith',               jobs:[] },
+  { name:'Glazier',                 jobs:[] },
+  { name:'Cabinet maker/Joiner',    jobs:[] },
+  { name:'Air conditioning/HVAC',   jobs:['Install','Repair/service','Ducted','Split system'] },
+  { name:'Pest control',            jobs:[] },
+  { name:'Cleaner',                 jobs:['End-of-lease','Regular/ongoing','Carpet/upholstery','Pressure washing'] },
+  { name:'Handyman (general)',      jobs:[] },
+  { name:'Arborist',                jobs:[] },
+  { name:'Appliance repair',        jobs:[] },
+  { name:'Other',                   jobs:[] },
+];
+
+const TRADE_COLORS = {
+  'Electrician':           { base:'#3D2B14', accent:'#D9A24B', dark:'#A06B2A' },
+  'Plumber':               { base:'#16343A', accent:'#7FC1CB', dark:'#3F8C97' },
+  'Builder/Carpenter':     { base:'#4A2620', accent:'#E0916F', dark:'#B85F3E' },
+  'Painter':               { base:'#2E2E2E', accent:'#D8D2C4', dark:'#A8A299' },
+  'Tiler':                 { base:'#3A2E20', accent:'#C2A06A', dark:'#8F7142' },
+  'Landscaper/Gardener':   { base:'#2A3420', accent:'#8FAA63', dark:'#5C7A38' },
+  'Roofer':                { base:'#33302C', accent:'#B5A88F', dark:'#827659' },
+};
+
+function tradeColors(trade) {
+  return TRADE_COLORS[trade] || { base:'#4A2740', accent:'#7D4566', dark:'#321C2C' };
+}
+
+/* ═══════════════════════════════════════════════
+   ISO TRADE OBJECTS (SVG)
+═══════════════════════════════════════════════ */
+function isoSVG(trade) {
+  const c = tradeColors(trade);
+  const a = c.accent, b = c.base, d = c.dark;
+
+  if (trade === 'Electrician') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- switchboard panel -->
+      <g transform="translate(36,14)">
+        <!-- top face -->
+        <polygon points="0,-12 20,-6 0,0 -20,-6" fill="${a}" opacity=".9"/>
+        <!-- right face -->
+        <polygon points="20,-6 20,24 0,30 0,0" fill="${d}"/>
+        <!-- left face -->
+        <polygon points="0,0 0,30 -20,24 -20,-6" fill="${b}"/>
+        <!-- toggle switches -->
+        <rect x="2" y="4" width="4" height="8" rx="1" fill="${a}" opacity=".7"/>
+        <rect x="8" y="4" width="4" height="8" rx="1" fill="${a}" opacity=".7"/>
+        <rect x="-12" y="4" width="4" height="8" rx="1" fill="${a}" opacity=".5"/>
+        <circle cx="4" cy="3" r="1.5" fill="#F4F1EA" opacity=".8"/>
+        <circle cx="10" cy="3" r="1.5" fill="#F4F1EA" opacity=".8"/>
+        <circle cx="-10" cy="3" r="1.5" fill="#F4F1EA" opacity=".4"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Plumber') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(36,20)">
+        <!-- horizontal pipe -->
+        <polygon points="-24,-6 0,-12 0,12 -24,6"  fill="${b}"/>
+        <polygon points="0,-12 24,-6  24,6  0,12"  fill="${d}"/>
+        <polygon points="-24,-6 0,-12 24,-6 0,0"   fill="${a}" opacity=".8"/>
+        <!-- elbow transition -->
+        <!-- vertical pipe going down -->
+        <polygon points="8,-6  20,-3  20,18  8,15"  fill="${d}"/>
+        <polygon points="-8,-6  8,-6   8,15 -8,15"  fill="${b}"/>
+        <polygon points="-8,-6  8,-6  20,-3  4,-1"  fill="${a}" opacity=".7"/>
+        <!-- valve wheel -->
+        <circle cx="8" cy="-10" r="7" fill="none" stroke="${a}" stroke-width="2.5"/>
+        <line x1="1" y1="-10" x2="15" y2="-10" stroke="${a}" stroke-width="1.5"/>
+        <line x1="8" y1="-17" x2="8" y2="-3"  stroke="${a}" stroke-width="1.5"/>
+        <circle cx="8" cy="-10" r="2" fill="${a}"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Builder/Carpenter') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(10,28)">
+        <!-- spirit level body -->
+        <polygon points="0,-8 52,-8 52,8 0,8" fill="${b}"/>
+        <polygon points="0,-8 52,-8 56,-4 4,-4" fill="${a}" opacity=".85"/>
+        <polygon points="52,-8 56,-4 56,12 52,8" fill="${d}"/>
+        <polygon points="0,8 52,8 56,12 4,12" fill="${d}" opacity=".7"/>
+        <!-- bubble vial -->
+        <ellipse cx="26" cy="0" rx="10" ry="5" fill="${a}" opacity=".3"/>
+        <ellipse cx="26" cy="0" rx="10" ry="5" fill="none" stroke="${a}" stroke-width="1.5"/>
+        <circle cx="24" cy="0" r="3" fill="#F4F1EA" opacity=".85"/>
+        <!-- tick marks -->
+        <line x1="8"  y1="-5" x2="8"  y2="5" stroke="${a}" stroke-width="1" opacity=".5"/>
+        <line x1="44" y1="-5" x2="44" y2="5" stroke="${a}" stroke-width="1" opacity=".5"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Painter') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(20,18)">
+        <!-- roller head -->
+        <polygon points="0,-6 32,-6 32,6 0,6" fill="${b}"/>
+        <polygon points="0,-6 32,-6 34,-3 2,-3" fill="${a}" opacity=".85"/>
+        <polygon points="32,-6 34,-3 34,9 32,6" fill="${d}"/>
+        <!-- handle -->
+        <line x1="16" y1="6" x2="16" y2="26" stroke="${a}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="16" y1="26" x2="28" y2="36" stroke="${a}" stroke-width="3" stroke-linecap="round"/>
+        <!-- paint drips -->
+        <ellipse cx="8"  cy="8" rx="2" ry="1" fill="${a}" opacity=".5"/>
+        <ellipse cx="20" cy="8" rx="2" ry="1" fill="${a}" opacity=".5"/>
+        <line x1="8"  y1="8" x2="7"  y2="14" stroke="${a}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+        <line x1="20" y1="8" x2="19" y2="16" stroke="${a}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Tiler') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(12,12)">
+        <!-- trowel blade -->
+        <polygon points="24,0 48,8 40,32 16,24" fill="${a}" opacity=".9"/>
+        <polygon points="24,0 48,8 50,5 26,-3" fill="${a}" opacity=".6"/>
+        <polygon points="48,8 50,5 42,29 40,32" fill="${d}"/>
+        <!-- notches on blade -->
+        <line x1="28" y1="6"  x2="44" y2="12" stroke="${b}" stroke-width="1.5" opacity=".5"/>
+        <line x1="24" y1="14" x2="40" y2="20" stroke="${b}" stroke-width="1.5" opacity=".5"/>
+        <line x1="22" y1="22" x2="38" y2="28" stroke="${b}" stroke-width="1.5" opacity=".5"/>
+        <!-- handle -->
+        <rect x="12" y="20" width="14" height="6" rx="2" fill="${b}" transform="rotate(-30,19,23)"/>
+        <rect x="4"  y="28" width="10" height="5" rx="2" fill="${d}" transform="rotate(-30,9,30.5)"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Landscaper/Gardener') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(10,10)">
+        <!-- wheelbarrow tray -->
+        <polygon points="10,20 40,20 36,36 6,36" fill="${b}"/>
+        <polygon points="10,20 40,20 42,17 12,17" fill="${a}" opacity=".85"/>
+        <polygon points="40,20 42,17 38,33 36,36" fill="${d}"/>
+        <!-- wheel -->
+        <circle cx="22" cy="40" r="7" fill="${b}" stroke="${a}" stroke-width="2"/>
+        <circle cx="22" cy="40" r="3" fill="${a}" opacity=".7"/>
+        <!-- handles -->
+        <line x1="6"  y1="36" x2="0"  y2="50" stroke="${a}" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="36" y1="36" x2="48" y2="50" stroke="${a}" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- dirt/soil -->
+        <ellipse cx="24" cy="20" rx="12" ry="4" fill="${a}" opacity=".5"/>
+      </g>
+    </svg>`;
+  }
+  if (trade === 'Roofer') {
+    return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(10,14)">
+        <!-- roof tile -->
+        <polygon points="26,0 52,14 52,30 26,16" fill="${d}"/>
+        <polygon points="0,14 26,0 26,16 0,30"  fill="${b}"/>
+        <polygon points="0,14 26,0 52,14 26,28" fill="${a}" opacity=".85"/>
+        <!-- ridge line -->
+        <line x1="0" y1="14" x2="52" y2="14" stroke="${a}" stroke-width="1" opacity=".4"/>
+        <!-- tile grooves -->
+        <line x1="8"  y1="16" x2="8"  y2="28" stroke="${a}" stroke-width="1" opacity=".3"/>
+        <line x1="16" y1="15" x2="16" y2="28" stroke="${a}" stroke-width="1" opacity=".3"/>
+        <line x1="34" y1="15" x2="34" y2="28" stroke="${a}" stroke-width="1" opacity=".3"/>
+        <line x1="42" y1="16" x2="42" y2="28" stroke="${a}" stroke-width="1" opacity=".3"/>
+      </g>
+    </svg>`;
+  }
+  // Generic fallback — a toolbox
+  return `<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(10,18)">
+      <polygon points="0,10 52,10 52,34 0,34" fill="${b}"/>
+      <polygon points="0,10 52,10 54,7 2,7"   fill="${a}" opacity=".8"/>
+      <polygon points="52,10 54,7 54,31 52,34" fill="${d}"/>
+      <polygon points="16,10 36,10 36,0 16,0" fill="none" stroke="${a}" stroke-width="2"/>
+      <line x1="0" y1="22" x2="52" y2="22" stroke="${a}" stroke-width="1" opacity=".4"/>
+      <rect x="20" y="19" width="12" height="6" rx="1" fill="${a}" opacity=".6"/>
+    </g>
+  </svg>`;
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION / ROUTER
+═══════════════════════════════════════════════ */
+const screens = ['home','detail','form','jobs','share','settings'];
+let currentScreen = 'home';
+let currentContact = null;
+let editingId = null;
+let sortMode = 'lastUsed';
+
+function showScreen(name, opts = {}) {
+  screens.forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s === name);
+  });
+  currentScreen = name;
+
+  const backBtn = document.getElementById('btn-back');
+  const titleEl = document.getElementById('top-bar-title');
+  const actionsEl = document.getElementById('top-bar-actions');
+  const nav = document.getElementById('bottom-nav');
+  const fab = document.getElementById('fab-add');
+
+  actionsEl.innerHTML = '';
+  backBtn.classList.add('hidden');
+  nav.style.display = 'flex';
+  fab.classList.toggle('hidden', name !== 'home');
+
+  if (name === 'home') {
+    titleEl.textContent = 'Tradecard';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === 'home'));
+  } else if (name === 'jobs') {
+    titleEl.textContent = 'Projects';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === 'jobs'));
+    renderJobs();
+  } else if (name === 'settings') {
+    titleEl.textContent = 'Settings';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === 'settings'));
+    renderSettings();
+  } else if (name === 'detail') {
+    backBtn.classList.remove('hidden');
+    nav.style.display = 'none';
+    fab.classList.add('hidden');
+    titleEl.textContent = '';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-outline';
+    editBtn.style.cssText = 'color:#F4F1EA;border-color:rgba(244,241,234,.35);font-size:11px;padding:6px 12px';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => openForm(currentContact.id);
+    actionsEl.appendChild(editBtn);
+    renderDetail(currentContact);
+  } else if (name === 'form') {
+    backBtn.classList.remove('hidden');
+    nav.style.display = 'none';
+    fab.classList.add('hidden');
+    titleEl.textContent = editingId ? 'Edit contact' : 'New contact';
+  } else if (name === 'share') {
+    backBtn.classList.remove('hidden');
+    nav.style.display = 'none';
+    fab.classList.add('hidden');
+    titleEl.textContent = 'Share card';
+    renderShareCard(currentContact);
+  }
+}
+
+document.getElementById('btn-back').onclick = () => {
+  if (currentScreen === 'detail') showScreen('home');
+  else if (currentScreen === 'form') {
+    if (currentContact) showScreen('detail');
+    else showScreen('home');
+  }
+  else if (currentScreen === 'share') showScreen('detail');
+  else showScreen('home');
+};
+
+document.querySelectorAll('.nav-btn').forEach(b => {
+  b.onclick = () => showScreen(b.dataset.screen);
+});
+
+/* ═══════════════════════════════════════════════
+   HOME SCREEN
+═══════════════════════════════════════════════ */
+async function renderHome() {
+  const all = await getAll('contacts');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const filterTrade = document.getElementById('filter-trade').value;
+
+  let list = all.filter(c => {
+    if (search && !c.name.toLowerCase().includes(search) && !(c.trade||'').toLowerCase().includes(search)) return false;
+    if (filterTrade && c.trade !== filterTrade) return false;
+    return true;
+  });
+
+  if (sortMode === 'lastUsed') list.sort((a,b) => (b.lastUsed||'') > (a.lastUsed||'') ? 1 : -1);
+  else if (sortMode === 'rating') list.sort((a,b) => (b.rating||0) - (a.rating||0));
+  else list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  const el = document.getElementById('trade-list');
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔧</div>
+      <div class="empty-title">${all.length ? 'No matches' : 'No contacts yet'}</div>
+      <div class="empty-sub">${all.length ? 'Try a different search.' : 'Tap + to add your first tradesperson.'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(c => {
+    const col = tradeColors(c.trade);
+    const dots = [1,2,3,4,5].map(i =>
+      `<span class="dot ${i <= (c.rating||0) ? 'filled' : ''}" style="color:${col.accent}"></span>`
+    ).join('');
+    const wouldClass = { yes:'would-yes', no:'would-no', maybe:'would-maybe' }[c.would] || '';
+    const wouldLabel = { yes:'Would use', no:'Wouldn\'t use', maybe:'Maybe' }[c.would] || '';
+    const dateStr = c.lastUsed ? `<span class="trade-card-date mono">${fmt(c.lastUsed)}</span>` : '';
+    const verBadge = c.verified ? `<span class="verified-badge">✓ Licensed</span>` : '';
+    return `<div class="trade-card" data-id="${c.id}" style="--trade-accent:${col.accent};--trade-base:${col.base}">
+      <div class="trade-card-accent" style="background:${col.accent}"></div>
+      <div class="trade-card-body">
+        <div class="trade-card-header">
+          <span class="trade-card-name">${esc(c.name)}</span>
+          <span class="trade-card-trade">${esc(c.trade||'')}${c.jobType ? ' · '+esc(c.jobType) : ''}</span>
+          ${verBadge}
+        </div>
+        <div class="trade-card-meta">
+          <div class="dots-rating">${dots}</div>
+          ${c.would ? `<span class="would-tag ${wouldClass}">${wouldLabel}</span>` : ''}
+          ${c.suburb ? `<span class="label">${esc(c.suburb)}</span>` : ''}
+          ${dateStr}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.trade-card').forEach(card => {
+    card.onclick = async () => {
+      currentContact = await getById('contacts', card.dataset.id);
+      showScreen('detail');
+    };
+  });
+}
+
+// Populate filter dropdown
+async function populateFilterDropdown() {
+  const all = await getAll('contacts');
+  const trades = [...new Set(all.map(c => c.trade).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-trade');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All trades</option>' +
+    trades.map(t => `<option ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
+}
+
+document.getElementById('search-input').oninput = () => renderHome();
+document.getElementById('filter-trade').onchange = () => renderHome();
+document.querySelectorAll('.sort-chip').forEach(c => {
+  c.onclick = () => {
+    sortMode = c.dataset.sort;
+    document.querySelectorAll('.sort-chip').forEach(x => x.classList.toggle('active', x === c));
+    renderHome();
+  };
+});
+
+document.getElementById('fab-add').onclick = () => openForm(null);
+
+/* ═══════════════════════════════════════════════
+   DETAIL SCREEN
+═══════════════════════════════════════════════ */
+async function renderDetail(c) {
+  const col = tradeColors(c.trade);
+  // Apply trade colors as CSS vars on detail header
+  const header = document.getElementById('detail-header');
+  header.style.cssText = `background:${col.base};--trade-accent:${col.accent};--trade-dark:${col.dark}`;
+
+  document.getElementById('detail-trade-label').textContent =
+    [c.trade, c.jobType].filter(Boolean).join(' · ');
+  document.getElementById('detail-name').textContent = c.name;
+  document.getElementById('detail-phone').innerHTML = c.phone
+    ? `<a href="tel:${esc(c.phone)}" style="color:inherit">${esc(c.phone)}</a>` : '';
+
+  const badges = document.getElementById('detail-header-badges');
+  badges.innerHTML = [
+    c.verified ? `<span class="verified-badge">✓ Licensed</span>` : '',
+    c.licExpiry && new Date(c.licExpiry) < new Date(Date.now()+30*864e5)
+      ? `<span class="reminder-badge" style="margin-left:6px">Licence expiring</span>` : '',
+  ].join('');
+
+  document.getElementById('detail-iso').innerHTML = isoSVG(c.trade);
+
+  // Tab switching
+  document.getElementById('detail-tabs').querySelectorAll('.detail-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.detail-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+tab.dataset.tab));
+    };
+  });
+
+  // Overview tab
+  const dots = [1,2,3,4,5].map(i =>
+    `<span class="dot ${i<=(c.rating||0)?'filled':''}" style="color:${col.accent};font-size:14px"></span>`
+  ).join('');
+  const wouldMap = { yes:'Would use again', no:'Wouldn\'t use again', maybe:'Maybe' };
+  const wouldClass = { yes:'would-yes', no:'would-no', maybe:'would-maybe' }[c.would] || '';
+
+  document.getElementById('tab-overview').innerHTML = `
+    ${c.verdict ? `<div class="verdict-box">${esc(c.verdict)}</div>` : ''}
+    <div class="spec-row"><div class="spec-key">Rating</div>
+      <div class="spec-val" style="display:flex;align-items:center;gap:8px">
+        <span style="display:flex;gap:4px">${dots}</span>
+        ${c.would ? `<span class="would-tag ${wouldClass}">${wouldMap[c.would]}</span>` : ''}
+      </div>
+    </div>
+    ${row('Trade',      [c.trade, c.jobType].filter(Boolean).join(' · '))}
+    ${row('Phone',      c.phone ? `<a href="tel:${esc(c.phone)}" style="color:var(--plum-mid)">${esc(c.phone)}</a>` : '')}
+    ${row('Source',     c.source)}
+    ${row('Last used',  c.lastUsed ? fmt(c.lastUsed) : '')}
+    ${row('Availability', c.availability)}
+    ${row('Suburb',     c.suburb)}
+    ${row('Licensed',   c.verified ? `<span class="verified-badge">✓ Verified</span>` : '')}
+    ${row('Lic. expiry', c.licExpiry ? fmt(c.licExpiry) : '')}
+    <div class="action-row">
+      <button class="btn btn-primary" id="btn-share-card" style="background:${col.accent}">Share card</button>
+      <button class="btn btn-outline" id="btn-add-quote-det">+ Quote</button>
+      <button class="btn btn-danger" id="btn-delete-contact">Delete</button>
+    </div>
+  `;
+
+  document.getElementById('btn-share-card').onclick = () => showScreen('share');
+  document.getElementById('btn-delete-contact').onclick = async () => {
+    if (!confirm(`Delete ${c.name}?`)) return;
+    await del('contacts', c.id);
+    showScreen('home');
+    renderHome();
+    populateFilterDropdown();
+  };
+  document.getElementById('btn-add-quote-det').onclick = () => openAddQuoteModal(c.id);
+
+  // Quotes tab
+  const quotes = await getByIndex('quotes','contactId', c.id);
+  document.getElementById('tab-quotes').innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary" id="btn-add-quote2" style="background:${col.accent}">+ Add quote</button>
+    </div>
+    ${quotes.length ? quotes.sort((a,b)=>b.date>a.date?1:-1).map(q => `
+      <div class="quote-item">
+        <div class="quote-amount" style="color:${col.accent}">$${q.amount ? Number(q.amount).toLocaleString() : '—'}</div>
+        <div class="quote-meta">${q.date ? fmt(q.date) : ''} ${q.job ? '· '+esc(q.job) : ''} ${q.responseTime ? '· Response: '+esc(q.responseTime) : ''}</div>
+        ${q.notes ? `<div style="font-size:13px;margin-top:6px;opacity:.7">${esc(q.notes)}</div>` : ''}
+        ${q.outcome ? `<span class="quote-outcome outcome-${q.outcome.replace(' ','-')}">${q.outcome}</span>` : ''}
+      </div>`) .join('') : '<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">No quotes yet</div></div>'}
+  `;
+  document.getElementById('btn-add-quote2').onclick = () => openAddQuoteModal(c.id);
+
+  // Photos tab
+  const photos = await getByIndex('photos','contactId', c.id);
+  document.getElementById('tab-photos').innerHTML = `
+    <div class="photo-grid" id="photo-grid-${c.id}">
+      ${photos.map(p => `<img class="photo-thumb" src="${p.dataUrl}" data-id="${p.id}">`).join('')}
+      <div class="photo-add-btn" id="photo-add-btn">+</div>
+    </div>
+    <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none">
+  `;
+  document.getElementById('photo-add-btn').onclick = () =>
+    document.getElementById('photo-file-input').click();
+  document.getElementById('photo-file-input').onchange = async e => {
+    for (const file of e.target.files) {
+      const dataUrl = await readFile(file);
+      await put('photos', { id:uid(), contactId:c.id, dataUrl, name:file.name, added:new Date().toISOString() });
+    }
+    renderDetail(c);
+    document.querySelectorAll('.detail-tab')[2].click();
+  };
+  document.querySelectorAll('.photo-thumb').forEach(img => {
+    img.onclick = () => {
+      document.getElementById('lightbox-img').src = img.src;
+      document.getElementById('lightbox').classList.remove('hidden');
+    };
+  });
+
+  // Notes tab
+  document.getElementById('tab-notes').innerHTML = `
+    <div style="margin-bottom:12px">
+      <p class="label" style="margin-bottom:8px">Private notes — never shown on share card</p>
+      <textarea id="notes-editor" style="width:100%;min-height:140px;padding:10px;border:1px solid var(--hairline);border-radius:2px;font-size:14px;background:var(--paper);color:var(--ink);font-family:var(--ff-body);resize:vertical">${esc(c.notes||'')}</textarea>
+      <button class="btn btn-primary" id="btn-save-notes" style="margin-top:8px;background:${col.accent}">Save notes</button>
+    </div>
+  `;
+  document.getElementById('btn-save-notes').onclick = async () => {
+    c.notes = document.getElementById('notes-editor').value;
+    await put('contacts', c);
+    currentContact = c;
+  };
+}
+
+function row(key, val) {
+  if (!val) return '';
+  return `<div class="spec-row"><div class="spec-key">${key}</div><div class="spec-val">${val}</div></div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   ADD / EDIT FORM
+═══════════════════════════════════════════════ */
+function openForm(id) {
+  editingId = id || null;
+  populateTradeSelect('f-trade');
+
+  const form = document.getElementById('trade-form');
+  form.reset();
+  document.getElementById('f-rating').value = '0';
+  document.getElementById('f-would').value = '';
+  document.querySelectorAll('.rating-dot').forEach(d => d.classList.remove('on'));
+  document.querySelectorAll('.would-option').forEach(o => o.className = 'would-option');
+
+  if (id) {
+    getById('contacts', id).then(c => {
+      document.getElementById('f-name').value      = c.name || '';
+      document.getElementById('f-phone').value     = c.phone || '';
+      document.getElementById('f-verdict').value   = c.verdict || '';
+      document.getElementById('f-availability').value = c.availability || '';
+      document.getElementById('f-suburb').value    = c.suburb || '';
+      document.getElementById('f-notes').value     = c.notes || '';
+      document.getElementById('f-verified').checked = !!c.verified;
+      document.getElementById('f-licexpiry').value = c.licExpiry || '';
+      document.getElementById('f-source').value    = c.source || '';
+      document.getElementById('f-lastused').value  = c.lastUsed || '';
+      document.getElementById('f-rating').value    = c.rating || 0;
+      document.getElementById('f-would').value     = c.would || '';
+      setRatingUI(c.rating || 0);
+      setWouldUI(c.would || '');
+      document.getElementById('f-trade').value = c.trade || '';
+      updateJobTypeSelect(c.trade, c.jobType);
+    });
+  } else {
+    document.getElementById('f-trade').value = '';
+    updateJobTypeSelect('', '');
+  }
+
+  showScreen('form');
+}
+
+function populateTradeSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">Select trade…</option>' +
+    TRADES.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+}
+
+function updateJobTypeSelect(trade, selected) {
+  const t = TRADES.find(x => x.name === trade);
+  const wrap = document.getElementById('f-jobtype-wrap');
+  const sel = document.getElementById('f-jobtype');
+  if (t && t.jobs.length) {
+    wrap.style.display = '';
+    sel.innerHTML = '<option value="">General</option>' +
+      t.jobs.map(j => `<option ${j===selected?'selected':''}>${esc(j)}</option>`).join('');
+  } else {
+    wrap.style.display = 'none';
+    sel.innerHTML = '<option value="">General</option>';
+  }
+}
+
+document.getElementById('f-trade').onchange = e => updateJobTypeSelect(e.target.value, '');
+
+// Rating picker
+document.querySelectorAll('.rating-dot').forEach(dot => {
+  dot.onclick = () => {
+    const v = parseInt(dot.dataset.v);
+    document.getElementById('f-rating').value = v;
+    setRatingUI(v);
+  };
+});
+function setRatingUI(v) {
+  document.querySelectorAll('.rating-dot').forEach(d => d.classList.toggle('on', parseInt(d.dataset.v) <= v));
+}
+
+// Would-use-again picker
+document.querySelectorAll('.would-option').forEach(opt => {
+  opt.onclick = () => {
+    document.getElementById('f-would').value = opt.dataset.v;
+    setWouldUI(opt.dataset.v);
+  };
+});
+function setWouldUI(v) {
+  document.querySelectorAll('.would-option').forEach(o => {
+    o.className = 'would-option' + (o.dataset.v === v ? ' selected-'+o.dataset.v : '');
+  });
+}
+
+document.getElementById('trade-form').onsubmit = async e => {
+  e.preventDefault();
+  const contact = {
+    id:           editingId || uid(),
+    name:         document.getElementById('f-name').value.trim(),
+    phone:        document.getElementById('f-phone').value.trim(),
+    trade:        document.getElementById('f-trade').value,
+    jobType:      document.getElementById('f-jobtype').value,
+    source:       document.getElementById('f-source').value,
+    rating:       parseInt(document.getElementById('f-rating').value) || 0,
+    would:        document.getElementById('f-would').value,
+    verdict:      document.getElementById('f-verdict').value.trim(),
+    lastUsed:     document.getElementById('f-lastused').value,
+    availability: document.getElementById('f-availability').value.trim(),
+    suburb:       document.getElementById('f-suburb').value.trim(),
+    verified:     document.getElementById('f-verified').checked,
+    licExpiry:    document.getElementById('f-licexpiry').value,
+    notes:        document.getElementById('f-notes').value.trim(),
+    updated:      new Date().toISOString(),
+  };
+  await put('contacts', contact);
+  currentContact = contact;
+  populateFilterDropdown();
+  renderHome();
+  showScreen('detail');
+  renderDetail(contact);
+};
+
+document.getElementById('btn-cancel-form').onclick = () => {
+  if (currentContact) showScreen('detail');
+  else showScreen('home');
+};
+
+/* ═══════════════════════════════════════════════
+   QUOTE MODAL
+═══════════════════════════════════════════════ */
+function openAddQuoteModal(contactId) {
+  const jobs = [];
+  getAll('jobs').then(js => {
+    showModal('Add quote', `
+      <div class="field"><label>Job / project (optional)</label>
+        <select id="qm-job">
+          <option value="">No project</option>
+          ${js.map(j=>`<option value="${j.id}">${esc(j.title)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Amount ($)</label><input type="number" id="qm-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="field"><label>Date received</label><input type="date" id="qm-date"></div>
+      <div class="field"><label>Response time</label><input type="text" id="qm-resp" placeholder="e.g. Same day, 3 days"></div>
+      <div class="field"><label>Outcome</label>
+        <select id="qm-outcome">
+          <option value="">—</option>
+          <option>accepted</option>
+          <option>declined</option>
+          <option>no response</option>
+        </select>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="qm-notes" style="min-height:60px"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary" id="btn-save-quote" style="flex:1;background:var(--plum-mid)">Save quote</button>
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      </div>
+    `);
+    document.getElementById('qm-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('btn-save-quote').onclick = async () => {
+      const q = {
+        id: uid(), contactId,
+        jobId:    document.getElementById('qm-job').value,
+        amount:   document.getElementById('qm-amount').value,
+        date:     document.getElementById('qm-date').value,
+        responseTime: document.getElementById('qm-resp').value,
+        outcome:  document.getElementById('qm-outcome').value,
+        notes:    document.getElementById('qm-notes').value,
+      };
+      await put('quotes', q);
+      closeModal();
+      if (currentContact && currentContact.id === contactId) {
+        renderDetail(currentContact);
+        setTimeout(() => document.querySelectorAll('.detail-tab')[1].click(), 50);
+      }
+    };
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   JOBS SCREEN
+═══════════════════════════════════════════════ */
+async function renderJobs() {
+  const all = await getAll('jobs');
+  const el = document.getElementById('jobs-list');
+  if (!all.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏗️</div><div class="empty-title">No projects yet</div><div class="empty-sub">Group trades and quotes into a project.</div></div>`;
+    return;
+  }
+  el.innerHTML = all.sort((a,b)=>b.created>a.created?1:-1).map(j => `
+    <div class="job-card" data-id="${j.id}">
+      <div class="job-title">${esc(j.title)}</div>
+      <div class="job-meta">
+        ${j.dateStart ? fmt(j.dateStart)+' → '+(j.dateEnd?fmt(j.dateEnd):'ongoing') : ''}
+        ${j.budget ? '· Budget $'+Number(j.budget).toLocaleString() : ''}
+      </div>
+      ${j.description ? `<div style="font-size:13px;margin-top:6px;opacity:.6">${esc(j.description)}</div>` : ''}
+    </div>`).join('');
+}
+
+document.getElementById('btn-add-job').onclick = () => {
+  showModal('New project', `
+    <div class="field"><label>Project name *</label><input type="text" id="jm-title" required placeholder="e.g. Bathroom renovation"></div>
+    <div class="field"><label>Description</label><textarea id="jm-desc" style="min-height:56px"></textarea></div>
+    <div class="field"><label>Start date</label><input type="date" id="jm-start"></div>
+    <div class="field"><label>End date</label><input type="date" id="jm-end"></div>
+    <div class="field"><label>Budget ($)</label><input type="number" id="jm-budget" min="0" step="100"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-primary" id="btn-save-job" style="flex:1;background:var(--plum)">Save project</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+  `);
+  document.getElementById('btn-save-job').onclick = async () => {
+    const title = document.getElementById('jm-title').value.trim();
+    if (!title) return;
+    await put('jobs', {
+      id: uid(), title,
+      description: document.getElementById('jm-desc').value.trim(),
+      dateStart:   document.getElementById('jm-start').value,
+      dateEnd:     document.getElementById('jm-end').value,
+      budget:      document.getElementById('jm-budget').value,
+      created:     new Date().toISOString(),
+    });
+    closeModal();
+    renderJobs();
+  };
+};
+
+/* ═══════════════════════════════════════════════
+   SHARE CARD
+═══════════════════════════════════════════════ */
+async function renderShareCard(c) {
+  const col = tradeColors(c.trade);
+  const quotes = await getByIndex('quotes','contactId', c.id);
+  const lastQ = quotes.sort((a,b)=>b.date>a.date?1:-1)[0];
+
+  const dots = [1,2,3,4,5].map(i =>
+    `<div class="share-dot ${i<=(c.rating||0)?'on':''}" style="${i<=(c.rating||0)?'background:'+col.accent:''}"></div>`
+  ).join('');
+
+  const wouldStamp = c.would === 'no'
+    ? `<div class="would-stamp no-stamp">Wouldn't use again</div>`
+    : c.would === 'yes'
+    ? `<div class="would-stamp" style="border-color:${col.accent};color:${col.accent}">Would use again ✓</div>`
+    : c.would === 'maybe'
+    ? `<div class="would-stamp" style="border-color:#f57f17;color:#f57f17">Maybe</div>`
+    : '';
+
+  document.getElementById('share-card-preview').innerHTML = `
+    <div class="share-card ticked">
+      <div class="share-header" style="background:${col.base}">
+        <span class="tick-bl"></span><span class="tick-br"></span>
+        <div class="share-header-iso">${isoSVG(c.trade)}</div>
+        <div class="share-trade-label">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</div>
+        <div class="share-name">${esc(c.name)}</div>
+        ${c.phone ? `<div class="share-phone">${esc(c.phone)}</div>` : ''}
+        ${c.verified ? `<div class="share-verified">✓ Licensed / verified</div>` : ''}
+      </div>
+      <div class="share-body">
+        <hr class="share-rule">
+        ${lastQ ? `<div class="share-data-row"><div class="share-data-key">Last quote</div><div class="share-data-val">$${Number(lastQ.amount).toLocaleString()} — ${lastQ.date?fmt(lastQ.date):''}</div></div>` : ''}
+        ${lastQ && lastQ.responseTime ? `<div class="share-data-row"><div class="share-data-key">Response</div><div class="share-data-val">${esc(lastQ.responseTime)}</div></div>` : ''}
+        ${c.lastUsed ? `<div class="share-data-row"><div class="share-data-key">Last used</div><div class="share-data-val">${fmt(c.lastUsed)}</div></div>` : ''}
+        ${c.availability ? `<div class="share-data-row"><div class="share-data-key">Availability</div><div class="share-data-val">${esc(c.availability)}</div></div>` : ''}
+        ${c.suburb ? `<div class="share-data-row"><div class="share-data-key">Area</div><div class="share-data-val">${esc(c.suburb)}</div></div>` : ''}
+        ${c.source ? `<div class="share-data-row"><div class="share-data-key">Source</div><div class="share-data-val">${esc(c.source)}</div></div>` : ''}
+        <hr class="share-rule">
+        ${c.verdict ? `<div class="share-verdict">"${esc(c.verdict)}"</div>` : ''}
+        <div class="share-footer">
+          <div class="share-dots">${dots}</div>
+          ${wouldStamp}
+        </div>
+      </div>
+      <div class="share-byline">Tradecard · signal9.app</div>
+    </div>
+    <span class="tick-bl"></span><span class="tick-br"></span>
+  `;
+}
+
+document.getElementById('btn-share-text').onclick = () => {
+  if (!currentContact) return;
+  const c = currentContact;
+  const text = [
+    `${c.name} — ${c.trade||''}${c.jobType?' ('+c.jobType+')':''}`,
+    c.phone,
+    c.verdict ? `"${c.verdict}"` : '',
+    c.rating ? `Rating: ${'★'.repeat(c.rating)}${'☆'.repeat(5-c.rating)}` : '',
+    c.would === 'yes' ? 'Would use again ✓' : c.would === 'no' ? "Wouldn't use again" : '',
+  ].filter(Boolean).join('\n');
+  if (navigator.share) navigator.share({ text });
+  else { navigator.clipboard.writeText(text); alert('Copied to clipboard!'); }
+};
+
+document.getElementById('btn-copy-card').onclick = () => {
+  alert('Screenshot the card above to save and share it.\n\nFor best results, use your device\'s screenshot tool.');
+};
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════ */
+async function renderSettings() {
+  // Reminders
+  const all = await getAll('contacts');
+  const today = new Date();
+  const reminders = all.filter(c => c.licExpiry && new Date(c.licExpiry) < new Date(today.getTime()+60*864e5));
+  const el = document.getElementById('reminders-list');
+  if (!reminders.length) {
+    el.innerHTML = '<div style="font-size:13px;opacity:.4;padding:8px 0">No upcoming reminders.</div>';
+  } else {
+    el.innerHTML = reminders.map(c => `
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">${esc(c.name)}</div>
+          <div class="settings-row-sub">Licence/insurance expiry: ${fmt(c.licExpiry)}</div>
+        </div>
+        <span class="reminder-badge">Expiring</span>
+      </div>`).join('');
+  }
+}
+
+document.getElementById('btn-export').onclick = async () => {
+  const contacts = await getAll('contacts');
+  const jobs     = await getAll('jobs');
+  const quotes   = await getAll('quotes');
+  const data = { version:1, exported: new Date().toISOString(), contacts, jobs, quotes };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tradecard-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+};
+
+document.getElementById('btn-import-trigger').onclick = () => document.getElementById('btn-import').click();
+document.getElementById('btn-import').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data.contacts) throw new Error('Invalid backup file');
+    if (!confirm(`Import ${data.contacts.length} contacts? This will merge with your existing data.`)) return;
+    for (const c of data.contacts) await put('contacts', c);
+    for (const j of (data.jobs||[])) await put('jobs', j);
+    for (const q of (data.quotes||[])) await put('quotes', q);
+    alert('Import complete!');
+    renderHome();
+    populateFilterDropdown();
+  } catch(err) {
+    alert('Import failed: ' + err.message);
+  }
+};
+
+document.getElementById('btn-clear-data').onclick = async () => {
+  if (!confirm('Delete ALL contacts, jobs, and quotes? This cannot be undone.')) return;
+  const contacts = await getAll('contacts');
+  const jobs     = await getAll('jobs');
+  const quotes   = await getAll('quotes');
+  for (const c of contacts) await del('contacts', c.id);
+  for (const j of jobs)     await del('jobs', j.id);
+  for (const q of quotes)   await del('quotes', q.id);
+  alert('All data cleared.');
+  renderHome();
+  populateFilterDropdown();
+};
+
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+function showModal(title, bodyHTML) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHTML;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  document.getElementById('modal-body').innerHTML = '';
+}
+document.getElementById('modal-close-btn').onclick = closeModal;
+document.getElementById('modal-overlay').onclick = e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+};
+
+/* ═══════════════════════════════════════════════
+   LIGHTBOX
+═══════════════════════════════════════════════ */
+document.getElementById('lightbox-close').onclick = () =>
+  document.getElementById('lightbox').classList.add('hidden');
+document.getElementById('lightbox').onclick = e => {
+  if (e.target === document.getElementById('lightbox'))
+    document.getElementById('lightbox').classList.add('hidden');
+};
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmt(d) {
+  if (!d) return '';
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return d; }
+}
+function readFile(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+(async () => {
+  await openDB();
+  await populateFilterDropdown();
+  await renderHome();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
