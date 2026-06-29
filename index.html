@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -803,13 +803,27 @@ const TRADES = [
 ];
 
 const TC = {
-  'Electrician':         { base:'#3D2B14', accent:'#D9A24B', dark:'#A06B2A' },
-  'Plumber':             { base:'#16343A', accent:'#7FC1CB', dark:'#3F8C97' },
-  'Builder/Carpenter':   { base:'#4A2620', accent:'#E0916F', dark:'#B85F3E' },
-  'Painter':             { base:'#2E2E2E', accent:'#D8D2C4', dark:'#A8A299' },
-  'Tiler':               { base:'#3A2E20', accent:'#C2A06A', dark:'#8F7142' },
-  'Landscaper/Gardener': { base:'#2A3420', accent:'#8FAA63', dark:'#5C7A38' },
-  'Roofer':              { base:'#33302C', accent:'#B5A88F', dark:'#827659' },
+  'Electrician':           { base:'#3D2B14', accent:'#D9A24B', dark:'#A06B2A' },
+  'Plumber':               { base:'#16343A', accent:'#7FC1CB', dark:'#3F8C97' },
+  'Builder/Carpenter':     { base:'#4A2620', accent:'#E0916F', dark:'#B85F3E' },
+  'Painter':               { base:'#2A2A2A', accent:'#D8D2C4', dark:'#A8A299' },
+  'Tiler':                 { base:'#3A2E20', accent:'#C2A06A', dark:'#8F7142' },
+  'Landscaper/Gardener':   { base:'#2A3420', accent:'#8FAA63', dark:'#5C7A38' },
+  'Roofer':                { base:'#33302C', accent:'#B5A88F', dark:'#827659' },
+  'Bricklayer/Stonemason': { base:'#3D1A0C', accent:'#C85C38', dark:'#943018' },
+  'Concreter':             { base:'#28282E', accent:'#9A9A9E', dark:'#66666A' },
+  'Plasterer':             { base:'#2E2C24', accent:'#D4CC94', dark:'#A09C6A' },
+  'Fencing contractor':    { base:'#2C2418', accent:'#A87840', dark:'#785428' },
+  'Locksmith':             { base:'#1C1E2C', accent:'#9898C0', dark:'#60609A' },
+  'Glazier':               { base:'#0E2034', accent:'#6AB0D0', dark:'#3880A8' },
+  'Cabinet maker/Joiner':  { base:'#3A280A', accent:'#C89044', dark:'#946820' },
+  'Air conditioning/HVAC': { base:'#0C2030', accent:'#4E8AA8', dark:'#2A5E7C' },
+  'Pest control':          { base:'#261C0E', accent:'#8A6630', dark:'#5C4418' },
+  'Cleaner':               { base:'#163430', accent:'#5AAA94', dark:'#2C7862' },
+  'Handyman (general)':    { base:'#3A2808', accent:'#CC8030', dark:'#9A5C18' },
+  'Arborist':              { base:'#182810', accent:'#628C3C', dark:'#3A5E20' },
+  'Appliance repair':      { base:'#1E1C2C', accent:'#6868AA', dark:'#3C3C80' },
+  'Other':                 { base:'#4A2740', accent:'#7D4566', dark:'#321C2C' },
 };
 function col(trade) {
   return TC[trade] || { base:'#4A2740', accent:'#7D4566', dark:'#321C2C' };
