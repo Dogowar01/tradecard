@@ -134,17 +134,21 @@ img{display:block}
 
   padding-bottom:env(safe-area-inset-bottom,0);
 }
-.nbtn{color:rgba(244,241,234,.65)}
 .nbtn{
   flex:1;padding:10px 0 9px;
   display:flex;flex-direction:column;align-items:center;gap:3px;
   font-family:var(--ff-mono);font-size:9px;
   letter-spacing:.07em;text-transform:uppercase;
-  color:var(--ink);opacity:.38;
-  transition:opacity .12s,color .12s;
+  color:rgba(255,255,255,.6);
+  opacity:1;
+  transition:color .15s,filter .15s,text-shadow .15s;
 }
 .nbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
-.nbtn.on{opacity:1;color:#C8882A}
+.nbtn.on{
+  color:#E8A84A;
+  filter:drop-shadow(0 0 6px rgba(232,168,74,.7));
+  text-shadow:0 0 10px rgba(232,168,74,.5);
+}
 
 /* ─── Screens ─────────────────────────────────────────── */
 .screen{display:none}
@@ -223,6 +227,7 @@ img{display:block}
 }
 .crow-body{flex:1;padding:13px 14px;min-width:0}
 .crow-top{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.crow-company{font-family:var(--ff-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;opacity:.6;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .crow-name{font-family:var(--ff-display);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .crow-trade{font-family:var(--ff-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;flex-shrink:0}
 .crow-bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -545,11 +550,11 @@ img{display:block}
 .share-act{display:flex;gap:8px;margin-top:16px;justify-content:center}
 
 /* ─── SETTINGS ────────────────────────────────────────── */
-#s-settings{padding:14px}
+#s-settings{padding:14px;background:rgba(244,241,234,1);min-height:100%;}
 .stitle{
   font-family:var(--ff-mono);font-size:9px;
   letter-spacing:.1em;text-transform:uppercase;
-  opacity:.42;margin-bottom:10px;
+  opacity:.7;margin-bottom:10px;
   padding-bottom:6px;border-bottom:1px solid var(--line);
 }
 .srow2{
@@ -557,7 +562,7 @@ img{display:block}
   display:flex;align-items:center;justify-content:space-between;gap:12px;
 }
 .srow2-lbl{font-size:14px}
-.srow2-sub{font-family:var(--ff-mono);font-size:11px;opacity:.42;margin-top:2px}
+.srow2-sub{font-family:var(--ff-mono);font-size:11px;opacity:.65;margin-top:2px}
 .ssec{margin-bottom:24px}
 
 /* ─── Empty ───────────────────────────────────────────── */
@@ -687,6 +692,7 @@ img{display:block}
 }
 
 /* Share card contact rows */
+.sc-company{font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-bottom:2px}
 .sc-contacts {
   margin-top: 6px;
   display: flex;
@@ -810,7 +816,11 @@ img{display:block}
         <div class="fsec">
           <div class="fsec-title">Contact</div>
           <div class="fld">
-            <label>Full name</label>
+            <label>Company name</label>
+            <input type="text" id="f-company" autocomplete="off" placeholder="e.g. Caruso Plumbing">
+          </div>
+          <div class="fld">
+            <label>Contact name</label>
             <input type="text" id="f-name" autocomplete="off" placeholder="e.g. Mike Caruso">
             <div class="field-error" id="err-name">Name is required.</div>
           </div>
@@ -1382,7 +1392,7 @@ async function renderHome() {
       <div class="crow-bar ${c.rating>=4?'glow':''}" style="background:${cc.accent}"></div>
       <div class="crow-body">
         <div class="crow-top">
-          <span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>':''}</span>
+          ${c.company?`<span class="crow-company">${esc(c.company)}</span>`:''}<span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>':''}</span>
           <span class="crow-trade">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</span>
           ${c.verified ? '<span class="vbadge">&#10003; Lic</span>' : ''}
         </div>
@@ -1468,6 +1478,7 @@ async function renderDetail(c) {
         ${c.would ? `<span class="wtag ${wcls}">${wlabel}</span>` : ''}
       </div>
     </div>
+    ${sr('Company',    c.company ? esc(c.company) : '')}
     ${sr('Trade',       [c.trade,c.jobType].filter(Boolean).join(' · '))}
     ${sr('Phone',       c.phone ? `<a href="tel:${esc(c.phone)}" style="color:${cc.accent}">${esc(c.phone)}</a>` : '')}
     ${sr('Email',       c.email ? `<a href="mailto:${esc(c.email)}" style="color:${cc.accent}">${esc(c.email)}</a>` : '')}
@@ -1569,6 +1580,7 @@ function openForm(id) {
   if (id) {
     byId('contacts', id).then(c => {
       document.getElementById('f-name').value    = c.name||'';
+      document.getElementById('f-company').value = c.company||'';
       document.getElementById('f-phone').value   = c.phone||'';
       document.getElementById('f-email').value   = c.email||'';
       document.getElementById('f-verdict').value = c.verdict||'';
@@ -1663,6 +1675,7 @@ document.getElementById('form').onsubmit = async e => {
   const c = {
     id:           editId || uid(),
     name,
+    company:      document.getElementById('f-company').value.trim(),
     phone:        document.getElementById('f-phone').value.trim(),
     email:        document.getElementById('f-email').value.trim(),
     trade,
@@ -1801,6 +1814,7 @@ async function renderShare(c) {
       <div class="sc-head" style="background:${tradePat(c.trade)} repeat, ${cc.base}">
         <span class="tb"></span><span class="tb2"></span>
         <div class="sc-head-iso">${iso(c.trade, 76)}</div>
+        ${c.company?`<div class="sc-company">${esc(c.company)}</div>`:''}
         <div class="sc-sup">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</div>
         <div class="sc-name">${esc(c.name)}</div>
         <div class="sc-contacts">
