@@ -678,6 +678,24 @@ img{display:block}
   font-size: 13px;
 }
 
+
+/* FAB 3D */
+#fab{
+  width:56px;height:56px;border-radius:50%;border:none;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--tc-accent) 80%,white),var(--tc-accent));
+  color:#F4F1EA;font-size:26px;line-height:1;cursor:pointer;z-index:50;
+  box-shadow:0 6px 0 color-mix(in srgb,var(--tc-accent) 55%,black),0 8px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.25);
+  transform:translateY(0);transition:box-shadow .12s,transform .12s;
+  position:fixed;bottom:80px;right:16px;
+}
+#fab:hover{
+  box-shadow:0 8px 0 color-mix(in srgb,var(--tc-accent) 55%,black),0 12px 22px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25);
+  transform:translateY(-2px);
+}
+#fab:active{
+  box-shadow:0 2px 0 color-mix(in srgb,var(--tc-accent) 55%,black),0 3px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);
+  transform:translateY(4px);
+}
 </style>
 </head>
 <body>
@@ -1300,7 +1318,7 @@ async function renderHome() {
       <div class="crow-bar ${c.rating>=4?'glow':''}" style="background:${cc.accent}"></div>
       <div class="crow-body">
         <div class="crow-top">
-          <span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>":''}</span>
+          <span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>':''}</span>
           <span class="crow-trade">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</span>
           ${c.verified ? '<span class="vbadge">&#10003; Lic</span>' : ''}
         </div>
