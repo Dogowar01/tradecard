@@ -549,6 +549,115 @@ img{display:block}
   padding:2px 6px;
   background:#fff3e0;color:#e65100;border:1px solid #ffcc02;border-radius:1px;
 }
+
+/* ─── Depth / elevation ───────────────────────────────── */
+
+/* Topbar bottom shadow */
+#topbar { box-shadow: 0 2px 12px rgba(0,0,0,.28); }
+
+/* Nav top shadow */
+#nav { box-shadow: 0 -2px 12px rgba(0,0,0,.22); }
+
+/* Contact rows — card float with hover lift */
+.crow {
+  box-shadow: 0 1px 4px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+  margin-bottom: 2px;
+  border-radius: 3px;
+  transition: background .12s, box-shadow .15s, transform .15s;
+}
+.crow:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12);
+  transform: translateY(-1px);
+}
+
+/* Detail header stronger 3D */
+.dhead {
+  box-shadow: 0 4px 24px rgba(0,0,0,.35), inset 0 -10px 28px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+/* Spec rows and quote items */
+.qitem {
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+/* Form fields — inset depth */
+.fld input, .fld select, .fld textarea {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.1);
+}
+.fld input:focus, .fld select:focus, .fld textarea:focus {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.1), 0 0 0 2px rgba(var(--tc-accent-rgb, 125,69,102),.15);
+}
+
+/* Form body card float */
+.form-body {
+  box-shadow: 0 -4px 20px rgba(0,0,0,.18);
+}
+
+/* Share card elevation */
+.scard {
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.18);
+}
+
+/* FAB stronger shadow */
+#fab {
+  box-shadow: 0 6px 20px rgba(0,0,0,.38), 0 2px 8px rgba(0,0,0,.2);
+}
+#fab:hover {
+  box-shadow: 0 10px 28px rgba(0,0,0,.44), 0 4px 10px rgba(0,0,0,.22);
+}
+
+/* Job cards */
+.jcard {
+  box-shadow: 0 1px 4px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+  transition: box-shadow .15s, transform .15s;
+}
+.jcard:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  transform: translateY(-1px);
+}
+
+/* Modal sheet elevation */
+.msheet {
+  box-shadow: 0 -8px 40px rgba(0,0,0,.35);
+}
+
+/* Buttons subtle depth */
+.btn-accent, .btn-plum {
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.btn-accent:hover, .btn-plum:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  transform: translateY(-1px);
+}
+
+/* Rating dots */
+.rdot.on {
+  box-shadow: 0 0 8px var(--tc-accent);
+}
+.bigdot.f {
+  box-shadow: 0 0 6px var(--tc-accent);
+}
+
+/* Share card contact rows */
+.sc-contacts {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc-contact-row {
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  opacity: .82;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sc-contact-icon {
+  opacity: .6;
+  font-size: 13px;
+}
+
 </style>
 </head>
 <body>
@@ -908,7 +1017,7 @@ function tradePat(trade) {
       `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><line x1='12' y1='0' x2='12' y2='24' stroke='${a}' stroke-width='.5' opacity='.18'/><line x1='0' y1='12' x2='24' y2='12' stroke='${a}' stroke-width='.5' opacity='.18'/></svg>`,
   };
   const svg = T[trade] || T['Other'];
-  return 'url("data:image/svg+xml,' + e(svg) + '")';
+  return "url('data:image/svg+xml," + e(svg) + "')";
 }
 function headerBg(trade) {
   return tradePat(trade) + ' repeat, ' + col(trade).base;
@@ -1591,8 +1700,10 @@ async function renderShare(c) {
         <div class="sc-head-iso">${iso(c.trade, 76)}</div>
         <div class="sc-sup">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</div>
         <div class="sc-name">${esc(c.name)}</div>
-        ${c.phone?`<div class="sc-phone">${esc(c.phone)}</div>`:''}
-        ${c.email?`<div class="sc-phone">${esc(c.email)}</div>`:''}
+        <div class="sc-contacts">
+          ${c.phone?`<div class="sc-contact-row"><span class="sc-contact-icon">☎</span>${esc(c.phone)}</div>`:''}
+          ${c.email?`<div class="sc-contact-row"><span class="sc-contact-icon">✉</span>${esc(c.email)}</div>`:''}
+        </div>
         ${c.verified?`<div class="sc-lic">&#10003; Licensed / verified</div>`:''}
       </div>
       <div class="sc-body">
