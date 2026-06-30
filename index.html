@@ -83,10 +83,31 @@ img{display:block}
 }
 #topbar-logo{
   font-family:var(--ff-display);
-  font-weight:700;font-size:16px;
-  letter-spacing:.02em;flex:1;
+  font-weight:700;font-size:20px;
+  letter-spacing:-.02em;flex:1;
+  display:flex;align-items:baseline;gap:0;
 }
-#topbar-logo span{opacity:.5;font-weight:400;margin-left:6px;font-size:13px;font-family:var(--ff-mono)}
+.logo-trade{
+  color:#F4F1EA;
+  text-shadow:0 0 18px rgba(244,241,234,.35);
+  letter-spacing:-.02em;
+}
+.logo-card{
+  background:linear-gradient(135deg, var(--tc-accent,#D9A24B) 0%, color-mix(in srgb,var(--tc-accent,#D9A24B) 70%,white) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+  font-style:italic;
+  letter-spacing:-.03em;
+}
+.logo-by{
+  opacity:.38;font-weight:400;margin-left:8px;font-size:11px;
+  font-family:var(--ff-mono);letter-spacing:.06em;text-transform:uppercase;
+  -webkit-text-fill-color:rgba(244,241,234,.38);
+  color:rgba(244,241,234,.38);
+  align-self:center;
+}
 #btn-back{
   color:#F4F1EA;
   width:36px;height:36px;
@@ -704,7 +725,7 @@ img{display:block}
 <div id="shell">
   <div id="topbar">
     <button id="btn-back" style="display:none">&#8592;</button>
-    <div id="topbar-logo">Tradecard <span>by Signal9</span></div>
+    <div id="topbar-logo"><span class="logo-trade">Trade</span><span class="logo-card">card</span><span class="logo-by">by Signal9</span></div>
     <div id="topbar-actions"></div>
   </div>
 
