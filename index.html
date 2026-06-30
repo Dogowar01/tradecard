@@ -1986,20 +1986,20 @@ function readFile(f) {
 })();
 
 function makeVCard(c) {
-  const lines = ['BEGIN:VCARD','VERSION:3.0'];
-  if (c.name)  lines.push('FN:' + c.name);
-  if (c.trade) lines.push('ORG:' + c.trade + (c.jobType ? ' — ' + c.jobType : ''));
-  if (c.phone) lines.push('TEL;TYPE=CELL:' + c.phone);
-  if (c.email) lines.push('EMAIL:' + c.email);
+  var sep = String.fromCharCode(13,10);
+  var lines = ['BEGIN:VCARD','VERSION:3.0'];
+  if (c.name)   lines.push('FN:' + c.name);
+  if (c.trade)  lines.push('ORG:' + c.trade + (c.jobType ? ' - ' + c.jobType : ''));
+  if (c.phone)  lines.push('TEL;TYPE=CELL:' + c.phone);
+  if (c.email)  lines.push('EMAIL:' + c.email);
   if (c.suburb) lines.push('ADR:;;;;' + c.suburb + ';;');
-  const notes = [];
-  if (c.rating) notes.push('Rating: ' + '★'.repeat(c.rating) + '☆'.repeat(5-c.rating));
+  var notes = [];
+  if (c.rating) notes.push('Rating: ' + c.rating + '/5');
   if (c.would)  notes.push({yes:'Would use again',no:"Wouldn't use again",maybe:'Maybe again'}[c.would]||'');
-  if (c.verdict) notes.push('"' + c.verdict + '"');
-  if (notes.length) lines.push('NOTE:' + notes.join(' · '));
+  if (c.verdict) notes.push(c.verdict);
+  if (notes.length) lines.push('NOTE:' + notes.join(' - '));
   lines.push('END:VCARD');
-  return lines.join('
-');
+  return lines.join(sep);
 }
 
 document.getElementById('btn-share-vcf').onclick = async () => {
