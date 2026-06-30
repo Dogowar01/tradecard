@@ -1,5 +1,5 @@
-const CACHE = 'tradecard-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'tradecard-v5';
+const ASSETS = ['/', '/index.html', '/manifest.json', '/icons/'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
