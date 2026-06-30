@@ -1037,30 +1037,47 @@ const TRADES = [
   { name:'Handyman (general)',    jobs:[] },
   { name:'Arborist',              jobs:[] },
   { name:'Appliance repair',      jobs:[] },
+  { name:'Chimney maintenance',   jobs:['Sweep','Inspection','Repair/relining','Cap/cowl install'] },
   { name:'Other',                 jobs:[] },
 ];
 
 const TC = {
-  'Electrician':           { base:'#3D2B14', accent:'#D9A24B', dark:'#A06B2A' },
-  'Plumber':               { base:'#16343A', accent:'#7FC1CB', dark:'#3F8C97' },
-  'Builder/Carpenter':     { base:'#4A2620', accent:'#E0916F', dark:'#B85F3E' },
-  'Painter':               { base:'#2A2A2A', accent:'#D8D2C4', dark:'#A8A299' },
-  'Tiler':                 { base:'#3A2E20', accent:'#C2A06A', dark:'#8F7142' },
-  'Landscaper/Gardener':   { base:'#2A3420', accent:'#8FAA63', dark:'#5C7A38' },
-  'Roofer':                { base:'#33302C', accent:'#B5A88F', dark:'#827659' },
-  'Bricklayer/Stonemason': { base:'#3D1A0C', accent:'#C85C38', dark:'#943018' },
-  'Concreter':             { base:'#28282E', accent:'#9A9A9E', dark:'#66666A' },
-  'Plasterer':             { base:'#2E2C24', accent:'#D4CC94', dark:'#A09C6A' },
-  'Fencing contractor':    { base:'#2C2418', accent:'#A87840', dark:'#785428' },
-  'Locksmith':             { base:'#1C1E2C', accent:'#9898C0', dark:'#60609A' },
-  'Glazier':               { base:'#0E2034', accent:'#6AB0D0', dark:'#3880A8' },
-  'Cabinet maker/Joiner':  { base:'#3A280A', accent:'#C89044', dark:'#946820' },
-  'Air conditioning/HVAC': { base:'#0C2030', accent:'#4E8AA8', dark:'#2A5E7C' },
-  'Pest control':          { base:'#261C0E', accent:'#8A6630', dark:'#5C4418' },
-  'Cleaner':               { base:'#163430', accent:'#5AAA94', dark:'#2C7862' },
-  'Handyman (general)':    { base:'#3A2808', accent:'#CC8030', dark:'#9A5C18' },
-  'Arborist':              { base:'#182810', accent:'#628C3C', dark:'#3A5E20' },
-  'Appliance repair':      { base:'#1E1C2C', accent:'#6868AA', dark:'#3C3C80' },
+  // Warm yellows / ambers
+  'Electrician':           { base:'#2C1E08', accent:'#F0B832', dark:'#B88020' },  // vivid yellow — wire/spark
+
+  // Blues / teals (well spread)
+  'Plumber':               { base:'#0E2830', accent:'#28C8D8', dark:'#1890A0' },  // bright cyan — pipes/water
+  'Glazier':               { base:'#081828', accent:'#88D0F0', dark:'#4898C8' },  // ice/crystal blue
+  'Air conditioning/HVAC': { base:'#081420', accent:'#48A0CC', dark:'#205878' },  // steel blue — distinct from Glazier
+
+  // Reds / oranges
+  'Builder/Carpenter':     { base:'#3A1A0C', accent:'#E87840', dark:'#B04C18' },  // deep terracotta/timber
+  'Bricklayer/Stonemason': { base:'#3A0C0C', accent:'#D83828', dark:'#A01818' },  // true brick red
+  'Handyman (general)':    { base:'#380C08', accent:'#E04040', dark:'#A82020' },  // vermillion/tomato red
+
+  // Greens (spread across value/hue)
+  'Landscaper/Gardener':   { base:'#182A10', accent:'#7AC840', dark:'#489018' },  // vivid lime-green — lawn
+  'Arborist':              { base:'#0C2010', accent:'#389848', dark:'#206030' },  // deep forest green — trees
+  'Cleaner':               { base:'#083028', accent:'#30D8A8', dark:'#189878' },  // mint/fresh green
+
+  // Purples / violets
+  'Locksmith':             { base:'#180C30', accent:'#9060E0', dark:'#5830B0' },  // vivid purple — keys
+  'Appliance repair':      { base:'#100C28', accent:'#7878D8', dark:'#4040A8' },  // blue-violet — tech
+
+  // Neutrals (each with a distinct tint)
+  'Painter':               { base:'#141420', accent:'#C0C8E8', dark:'#8090C0' },  // cool off-white/periwinkle
+  'Plasterer':             { base:'#281820', accent:'#D890B0', dark:'#A05878' },  // dusty rose/mauve
+  'Roofer':                { base:'#202020', accent:'#A0A8B0', dark:'#606870' },  // cool slate grey
+  'Concreter':             { base:'#181820', accent:'#8888A0', dark:'#505060' },  // blue-grey concrete
+
+  // Warm browns / greens (unique enough when paired with pattern)
+  'Tiler':                 { base:'#201830', accent:'#A080D0', dark:'#6040A0' },  // purple — mosaic tiles
+  'Fencing contractor':    { base:'#1C2010', accent:'#909858', dark:'#585E28' },  // olive/khaki — timber
+  'Cabinet maker/Joiner':  { base:'#280C04', accent:'#C05020', dark:'#882800' },  // deep mahogany
+  'Pest control':          { base:'#1A2008', accent:'#90B820', dark:'#587000' },  // toxic yellow-green
+
+  // Unique
+  'Chimney maintenance':   { base:'#0C0C0C', accent:'#E06020', dark:'#A03800' },  // soot black + ember orange
   'Other':                 { base:'#1A1612', accent:'#B87333', dark:'#7A4A1A' },
 };
 function col(trade) {
@@ -1111,6 +1128,8 @@ function tradePat(trade) {
       `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='20' r='5' fill='none' stroke='${a}' stroke-width='.8' opacity='.2'/><circle cx='20' cy='20' r='11' fill='none' stroke='${a}' stroke-width='.7' opacity='.14'/><circle cx='20' cy='20' r='18' fill='none' stroke='${a}' stroke-width='.6' opacity='.09'/></svg>`,
     'Appliance repair':
       `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><circle cx='16' cy='16' r='9' fill='none' stroke='${a}' stroke-width='.8' opacity='.18'/><circle cx='16' cy='16' r='3.5' fill='none' stroke='${a}' stroke-width='.8' opacity='.18'/><line x1='16' y1='4' x2='16' y2='8' stroke='${a}' stroke-width='2' opacity='.16'/><line x1='16' y1='24' x2='16' y2='28' stroke='${a}' stroke-width='2' opacity='.16'/><line x1='4' y1='16' x2='8' y2='16' stroke='${a}' stroke-width='2' opacity='.16'/><line x1='24' y1='16' x2='28' y2='16' stroke='${a}' stroke-width='2' opacity='.16'/></svg>`,
+    'Chimney maintenance':
+      `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='36'><rect x='2' y='8' width='16' height='28' fill='none' stroke='${a}' stroke-width='.8' opacity='.18'/><line x1='2' y1='14' x2='18' y2='14' stroke='${a}' stroke-width='.5' opacity='.12'/><line x1='2' y1='20' x2='18' y2='20' stroke='${a}' stroke-width='.5' opacity='.12'/><line x1='2' y1='26' x2='18' y2='26' stroke='${a}' stroke-width='.5' opacity='.12'/><path d='M6,8 Q10,0 14,8' fill='none' stroke='${a}' stroke-width='.8' opacity='.18'/></svg>`,
     'Other':
       `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><line x1='12' y1='0' x2='12' y2='24' stroke='${a}' stroke-width='.5' opacity='.18'/><line x1='0' y1='12' x2='24' y2='12' stroke='${a}' stroke-width='.5' opacity='.18'/></svg>`,
   };
