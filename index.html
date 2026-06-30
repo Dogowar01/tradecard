@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -74,8 +74,8 @@ img{display:block}
   -webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(184,115,51,.2);
   color:#F4F1EA;
-  padding:0 14px;
-  height:54px;
+  padding:env(safe-area-inset-top,0) 14px 0;
+  height:calc(54px + env(safe-area-inset-top,0));
   display:flex;
   align-items:center;
   gap:10px;
@@ -131,6 +131,8 @@ img{display:block}
   border-top:1px solid rgba(184,115,51,.35);
   display:flex;
   position:sticky;bottom:0;z-index:100;
+
+  padding-bottom:env(safe-area-inset-bottom,0);
 }
 .nbtn{color:rgba(244,241,234,.65)}
 .nbtn{
