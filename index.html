@@ -9,7 +9,46 @@
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js">
+function makeVCard(c) {
+  const lines = ['BEGIN:VCARD','VERSION:3.0'];
+  if (c.name)  lines.push('FN:' + c.name);
+  if (c.trade) lines.push('ORG:' + c.trade + (c.jobType ? ' — ' + c.jobType : ''));
+  if (c.phone) lines.push('TEL;TYPE=CELL:' + c.phone);
+  if (c.email) lines.push('EMAIL:' + c.email);
+  if (c.suburb) lines.push('ADR:;;;;' + c.suburb + ';;');
+  const notes = [];
+  if (c.rating) notes.push('Rating: ' + '★'.repeat(c.rating) + '☆'.repeat(5-c.rating));
+  if (c.would)  notes.push({yes:'Would use again',no:"Wouldn't use again",maybe:'Maybe again'}[c.would]||'');
+  if (c.verdict) notes.push('"' + c.verdict + '"');
+  if (notes.length) lines.push('NOTE:' + notes.join(' · '));
+  lines.push('END:VCARD');
+  return lines.join('
+');
+}
+
+document.getElementById('btn-share-vcf').onclick = async () => {
+  if (!contact) return;
+  const vcf = makeVCard(contact);
+  const blob = new Blob([vcf], { type: 'text/vcard' });
+  const fname = contact.name.replace(/\s+/g,'-').toLowerCase() + '.vcf';
+  const file = new File([blob], fname, { type: 'text/vcard' });
+  const status = document.getElementById('share-status');
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: contact.name });
+      status.textContent = '';
+    } catch(e) {
+      if (e.name !== 'AbortError') { downloadBlob(blob, fname); status.textContent = 'Contact file saved.'; setTimeout(()=>{status.textContent=''},3000); }
+    }
+  } else {
+    downloadBlob(blob, fname);
+    status.textContent = 'Contact file saved — open it to import.';
+    setTimeout(() => { status.textContent = ''; }, 4000);
+  }
+};
+
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── Variables ───────────────────────────────────────── */
@@ -910,6 +949,7 @@ img{display:block}
       <div class="share-act">
         <button class="btn btn-accent" id="btn-share-img">Share as image</button>
         <button class="btn btn-ghost" id="btn-share-txt">Share as text</button>
+        <button class="btn btn-ghost" id="btn-share-vcf">Save to contacts</button>
       </div>
       <p id="share-status" style="text-align:center;font-family:var(--ff-mono);font-size:10px;opacity:.4;margin-top:12px;min-height:16px"></p>
     </div>
