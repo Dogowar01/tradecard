@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4A2740">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── Variables ───────────────────────────────────────── */
@@ -621,6 +622,10 @@ img{display:block}
             <label>Phone</label>
             <input type="tel" id="f-phone" autocomplete="off" placeholder="04xx xxx xxx">
           </div>
+          <div class="fld">
+            <label>Email</label>
+            <input type="email" id="f-email" autocomplete="off" placeholder="name@example.com">
+          </div>
         </div>
 
         <div class="fsec">
@@ -731,10 +736,10 @@ img{display:block}
         <div id="sc-preview"></div>
       </div>
       <div class="share-act">
-        <button class="btn btn-plum" id="btn-share-txt">Share as text</button>
-        <button class="btn btn-ghost" id="btn-screenshot-tip">Save image</button>
+        <button class="btn btn-accent" id="btn-share-img">Share as image</button>
+        <button class="btn btn-ghost" id="btn-share-txt">Share as text</button>
       </div>
-      <p style="text-align:center;font-family:var(--ff-mono);font-size:10px;opacity:.3;margin-top:12px">Screenshot the card above to share it.</p>
+      <p id="share-status" style="text-align:center;font-family:var(--ff-mono);font-size:10px;opacity:.4;margin-top:12px;min-height:16px"></p>
     </div>
 
     <!-- SETTINGS -->
@@ -1253,6 +1258,7 @@ async function renderDetail(c) {
     </div>
     ${sr('Trade',       [c.trade,c.jobType].filter(Boolean).join(' · '))}
     ${sr('Phone',       c.phone ? `<a href="tel:${esc(c.phone)}" style="color:${cc.accent}">${esc(c.phone)}</a>` : '')}
+    ${sr('Email',       c.email ? `<a href="mailto:${esc(c.email)}" style="color:${cc.accent}">${esc(c.email)}</a>` : '')}
     ${sr('Source',      c.source)}
     ${sr('Last used',   c.lastUsed ? fmt(c.lastUsed) : '')}
     ${sr('Availability',c.availability)}
@@ -1352,6 +1358,7 @@ function openForm(id) {
     byId('contacts', id).then(c => {
       document.getElementById('f-name').value    = c.name||'';
       document.getElementById('f-phone').value   = c.phone||'';
+      document.getElementById('f-email').value   = c.email||'';
       document.getElementById('f-verdict').value = c.verdict||'';
       document.getElementById('f-avail').value   = c.availability||'';
       document.getElementById('f-suburb').value  = c.suburb||'';
@@ -1445,6 +1452,7 @@ document.getElementById('form').onsubmit = async e => {
     id:           editId || uid(),
     name,
     phone:        document.getElementById('f-phone').value.trim(),
+    email:        document.getElementById('f-email').value.trim(),
     trade,
     jobType:      document.getElementById('f-jt').value,
     source:       document.getElementById('f-src').value,
@@ -1584,6 +1592,7 @@ async function renderShare(c) {
         <div class="sc-sup">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</div>
         <div class="sc-name">${esc(c.name)}</div>
         ${c.phone?`<div class="sc-phone">${esc(c.phone)}</div>`:''}
+        ${c.email?`<div class="sc-phone">${esc(c.email)}</div>`:''}
         ${c.verified?`<div class="sc-lic">&#10003; Licensed / verified</div>`:''}
       </div>
       <div class="sc-body">
@@ -1604,21 +1613,63 @@ async function renderShare(c) {
     </div>`;
 }
 
+document.getElementById('btn-share-img').onclick = async () => {
+  if (!contact) return;
+  const status = document.getElementById('share-status');
+  const card = document.getElementById('sc-preview');
+  status.textContent = 'Generating image…';
+  try {
+    const canvas = await html2canvas(card, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    canvas.toBlob(async blob => {
+      const file = new File([blob], 'tradecard-' + contact.name.replace(/\s+/g,'-').toLowerCase() + '.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: contact.name + ' — ' + (contact.trade||''),
+            text: [contact.name, contact.trade, contact.phone, contact.email].filter(Boolean).join(' · '),
+          });
+          status.textContent = '';
+        } catch(e) {
+          if (e.name !== 'AbortError') downloadBlob(blob, file.name);
+          status.textContent = '';
+        }
+      } else {
+        // Fallback: download the PNG
+        downloadBlob(blob, file.name);
+        status.textContent = 'Image saved to downloads.';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      }
+    }, 'image/png');
+  } catch(e) {
+    status.textContent = 'Could not generate image.';
+  }
+};
+
+function downloadBlob(blob, name) {
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+  a.click();
+}
+
 document.getElementById('btn-share-txt').onclick = () => {
   if (!contact) return;
   const c = contact;
   const t = [
-    `${c.name} — ${c.trade||''}${c.jobType?' ('+c.jobType+')':''}`,
+    c.name + ' — ' + (c.trade||'') + (c.jobType?' ('+c.jobType+')':''),
     c.phone,
-    c.verdict?`"${c.verdict}"`:'',
-    c.rating?`Rating: ${'★'.repeat(c.rating)}${'☆'.repeat(5-c.rating)}`:'',
+    c.email,
+    c.verdict?'"'+c.verdict+'"':'',
+    c.rating?'★'.repeat(c.rating)+'☆'.repeat(5-c.rating):'',
     {yes:'Would use again ✓',no:"Wouldn't use again",maybe:'Maybe'}[c.would]||'',
   ].filter(Boolean).join('\n');
   if (navigator.share) navigator.share({text:t});
   else { navigator.clipboard.writeText(t); alert('Copied to clipboard!'); }
 };
-document.getElementById('btn-screenshot-tip').onclick = () =>
-  alert('Use your device\'s screenshot to save the card above, then share it.');
 
 /* ═══════════════════════════════════════
    SETTINGS
