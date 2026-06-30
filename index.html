@@ -165,14 +165,34 @@ img{display:block}
 /* ─── Contact row ─────────────────────────────────────── */
 .crow{
   display:flex;align-items:stretch;
-  background:rgba(244,241,234,1);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:linear-gradient(to right, color-mix(in srgb, var(--crow-accent,#8F7142) 18%, #F4F1EA), #F4F1EA 72%);
   cursor:pointer;
-  transition:background .12s;
+  transition:box-shadow .15s, transform .15s;
 }
-.crow:hover{background:rgba(244,241,234,1)}
-.crow-bar{width:5px;flex-shrink:0}
+.crow:hover{
+  background:linear-gradient(to right, color-mix(in srgb, var(--crow-accent,#8F7142) 26%, #F4F1EA), #F4F1EA 72%);
+}
+.crow-bar{
+  width:5px;flex-shrink:0;
+  box-shadow:0 0 8px 2px var(--crow-accent,#8F7142), 0 0 2px 1px var(--crow-accent,#8F7142);
+}
+@keyframes neon-pulse{
+  0%,100%{box-shadow:0 0 6px 2px var(--crow-accent,#8F7142), 0 0 2px 1px var(--crow-accent,#8F7142)}
+  50%{box-shadow:0 0 16px 5px var(--crow-accent,#8F7142), 0 0 4px 2px var(--crow-accent,#8F7142)}
+}
+@keyframes star-pulse{
+  0%,100%{text-shadow:0 0 6px currentColor, 0 0 12px currentColor;transform:scale(1)}
+  50%{text-shadow:0 0 14px currentColor, 0 0 28px currentColor, 0 0 40px currentColor;transform:scale(1.18)}
+}
+.crow-bar.glow{animation:neon-pulse 2.4s ease-in-out infinite}
+.crow-star{
+  display:inline-block;
+  font-size:14px;
+  color:var(--crow-accent,#8F7142);
+  animation:star-pulse 2s ease-in-out infinite;
+  line-height:1;
+  margin-left:2px;
+}
 .crow-body{flex:1;padding:13px 14px;min-width:0}
 .crow-top{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
 .crow-name{font-family:var(--ff-display);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1276,11 +1296,11 @@ async function renderHome() {
     ).join('');
     const wc = {yes:'wtag wyes',no:'wtag wno',maybe:'wtag wmb'}[c.would] || '';
     const wl = {yes:'Would use',no:"Wouldn't",maybe:'Maybe'}[c.would] || '';
-    return `<div class="crow" data-id="${c.id}">
-      <div class="crow-bar" style="background:${cc.accent}"></div>
+    return `<div class="crow" data-id="${c.id}" style="--crow-accent:${cc.accent}">
+      <div class="crow-bar ${c.rating>=4?'glow':''}" style="background:${cc.accent}"></div>
       <div class="crow-body">
         <div class="crow-top">
-          <span class="crow-name">${esc(c.name)}</span>
+          <span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>":''}</span>
           <span class="crow-trade">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</span>
           ${c.verified ? '<span class="vbadge">&#10003; Lic</span>' : ''}
         </div>
