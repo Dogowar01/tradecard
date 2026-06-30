@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4A2740">
+<meta name="theme-color" content="#1A1612">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,8 +16,8 @@
 :root {
   --bg:        #E8E3D8;
   --paper:     #F4F1EA;
-  --plum:      #4A2740;
-  --plum-mid:  #7D4566;
+  --plum:      #1A1612;
+  --plum-mid:  #B87333;
   --ink:       #2B2620;
   --ink-muted: rgba(43,38,32,.45);
   --brass:     #C9A86A;
@@ -25,9 +25,9 @@
   --line-mid:  rgba(43,38,32,.22);
 
   /* active trade colours — updated by JS */
-  --tc-base:   #4A2740;
-  --tc-accent: #7D4566;
-  --tc-dark:   #321C2C;
+  --tc-base:   #1A1612;
+  --tc-accent: #B87333;
+  --tc-dark:   #7A4A1A;
 
   --ff-display: 'Space Grotesk', sans-serif;
   --ff-body:    'Inter', sans-serif;
@@ -68,10 +68,10 @@ img{display:block}
 
 /* ─── Top bar ─────────────────────────────────────────── */
 #topbar{
-  background:rgba(0,0,0,.52);
+  background:rgba(10,8,6,.88);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(184,115,51,.2);
   color:#F4F1EA;
   padding:0 14px;
   height:54px;
@@ -93,13 +93,15 @@ img{display:block}
   letter-spacing:-.02em;
 }
 .logo-card{
-  background:linear-gradient(135deg, var(--tc-accent,#D9A24B) 0%, color-mix(in srgb,var(--tc-accent,#D9A24B) 70%,white) 100%);
+  background:linear-gradient(135deg, #C8882A 0%, #E8B86D 50%, #C8882A 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
   text-shadow:none;
   font-style:italic;
   letter-spacing:-.03em;
+  padding-right:4px;
+  display:inline-block;
 }
 .logo-by{
   opacity:.38;font-weight:400;margin-left:8px;font-size:11px;
@@ -122,10 +124,10 @@ img{display:block}
 
 /* ─── Bottom nav ──────────────────────────────────────── */
 #nav{
-  background:rgba(20,16,14,.72);
+  background:rgba(10,8,6,.85);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
-  border-top:1px solid rgba(255,255,255,.08);
+  border-top:1px solid rgba(184,115,51,255,255,.08);
   display:flex;
   position:sticky;bottom:0;z-index:100;
 }
@@ -139,7 +141,7 @@ img{display:block}
   transition:opacity .12s,color .12s;
 }
 .nbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
-.nbtn.on{opacity:1;color:var(--plum)}
+.nbtn.on{opacity:1;color:var(--plum-mid)}
 
 /* ─── Screens ─────────────────────────────────────────── */
 .screen{display:none}
@@ -163,7 +165,7 @@ img{display:block}
   outline:none;
 }
 .home-filter input{flex:1;font-size:14px}
-.home-filter input:focus{border-color:var(--plum-mid)}
+.home-filter input:focus{border-color:#B87333}
 .home-filter select{font-family:var(--ff-mono);font-size:12px;cursor:pointer}
 
 .sort-row{
@@ -181,7 +183,7 @@ img{display:block}
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
 }
-.schip.on{opacity:1;border-color:var(--plum-mid);background:rgba(125,69,102,.45)}
+.schip.on{opacity:1;border-color:#B87333;background:rgba(184,115,51,.35)}
 
 #list{display:flex;flex-direction:column;gap:1px;background:rgba(0,0,0,.15);border-top:1px solid rgba(0,0,0,.2)}
 
@@ -338,7 +340,7 @@ img{display:block}
 }
 .btn:hover{opacity:.78}
 .btn-accent{background:var(--tc-accent);color:#F4F1EA;border:none;transition:background .25s}
-.btn-plum{background:var(--plum);color:#F4F1EA;border:none}
+.btn-plum{background:#1A1612;color:#E8B86D;border:1px solid rgba(184,115,51,.4);}
 .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-mid)}
 .btn-danger{background:transparent;color:#c62828;border:1px solid #ef9a9a}
 
@@ -372,7 +374,7 @@ img{display:block}
   aspect-ratio:1;border:1px dashed var(--line-mid);
   border-radius:1px;display:flex;align-items:center;
   justify-content:center;font-size:22px;
-  color:var(--plum-mid);cursor:pointer;background:var(--paper);
+  color:#B87333;cursor:pointer;background:var(--paper);
 }
 
 /* ─── FORM ────────────────────────────────────────────── */
@@ -473,7 +475,7 @@ img{display:block}
 .jcard{
   background:var(--paper);border-radius:2px;
   padding:14px;margin-bottom:8px;cursor:pointer;
-  border-left:3px solid var(--plum-mid);
+  border-left:3px solid #B87333;
   transition:box-shadow .12s;
 }
 .jcard:hover{box-shadow:0 2px 12px rgba(74,39,64,.1)}
@@ -1024,10 +1026,10 @@ const TC = {
   'Handyman (general)':    { base:'#3A2808', accent:'#CC8030', dark:'#9A5C18' },
   'Arborist':              { base:'#182810', accent:'#628C3C', dark:'#3A5E20' },
   'Appliance repair':      { base:'#1E1C2C', accent:'#6868AA', dark:'#3C3C80' },
-  'Other':                 { base:'#4A2740', accent:'#7D4566', dark:'#321C2C' },
+  'Other':                 { base:'#1A1612', accent:'#B87333', dark:'#7A4A1A' },
 };
 function col(trade) {
-  return TC[trade] || { base:'#4A2740', accent:'#7D4566', dark:'#321C2C' };
+  return TC[trade] || { base:'#1A1612', accent:'#B87333', dark:'#7A4A1A' };
 }
 
 function tradePat(trade) {
