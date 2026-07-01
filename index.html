@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="21">
+  <meta name="app-version" content="22">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -182,6 +182,11 @@ img{display:block}
   color:#E8A84A;
   filter:drop-shadow(0 0 6px rgba(232,168,74,.7));
   text-shadow:0 0 10px rgba(232,168,74,.5);
+}
+.nbtn[data-sc="jobs"].on{
+  color:#D4A054;
+  filter:drop-shadow(0 0 8px rgba(184,115,51,.9)) drop-shadow(0 0 3px rgba(212,160,84,.7));
+  text-shadow:0 0 12px rgba(184,115,51,.7);
 }
 
 /* ─── Screens ─────────────────────────────────────────── */
@@ -609,20 +614,73 @@ img{display:block}
 .cbrow label{font-size:14px;cursor:pointer}
 
 /* ─── JOBS ────────────────────────────────────────────── */
-#s-jobs{padding:14px}
+#s-jobs{
+  padding:14px;
+  box-shadow:
+    inset 0 0 80px rgba(184,115,51,.05),
+    inset 3px 0 24px rgba(184,115,51,.04),
+    inset -3px 0 24px rgba(184,115,51,.04);
+  border-left:1px solid rgba(184,115,51,.08);
+  border-right:1px solid rgba(184,115,51,.08);
+}
 .jcard{
   display:flex;align-items:stretch;
-  background:var(--paper);border-radius:2px;
-  margin-bottom:8px;cursor:pointer;
-  transition:box-shadow .12s;overflow:hidden;
+  background:linear-gradient(160deg,
+    rgba(46,36,24,.97) 0%,
+    rgba(30,24,18,.99) 55%,
+    rgba(20,16,12,1) 100%);
+  border-radius:3px;
+  margin-bottom:10px;cursor:pointer;overflow:hidden;
+  border:1px solid rgba(184,115,51,.14);
+  border-top:1px solid rgba(244,241,234,.07);
+  box-shadow:
+    0 1px 0 rgba(244,241,234,.05) inset,
+    0 -1px 0 rgba(0,0,0,.5) inset,
+    0 6px 16px rgba(0,0,0,.45),
+    0 2px 6px rgba(0,0,0,.35),
+    0 0 0 1px rgba(0,0,0,.25),
+    0 0 18px rgba(184,115,51,.06);
+  transform:translateZ(0);
+  transition:box-shadow .18s,transform .18s;
 }
-.jcard:hover{box-shadow:0 2px 14px rgba(74,39,64,.15)}
-.jcard-bar{width:5px;flex-shrink:0;background:#B87333;
-  box-shadow:0 0 8px 2px rgba(184,115,51,.4),0 0 2px 1px rgba(184,115,51,.3);}
-.jcard-inner{flex:1;padding:12px 14px;min-width:0}
+.jcard:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(244,241,234,.07) inset,
+    0 -1px 0 rgba(0,0,0,.5) inset,
+    0 10px 28px rgba(0,0,0,.5),
+    0 4px 10px rgba(0,0,0,.35),
+    0 0 0 1px rgba(184,115,51,.2),
+    0 0 28px rgba(184,115,51,.12);
+}
+.jcard:active{
+  transform:translateY(1px);
+  box-shadow:
+    0 1px 0 rgba(244,241,234,.04) inset,
+    0 -1px 0 rgba(0,0,0,.6) inset,
+    0 2px 8px rgba(0,0,0,.4),
+    0 1px 3px rgba(0,0,0,.3),
+    0 0 0 1px rgba(184,115,51,.18);
+}
+.jcard-bar{
+  width:6px;flex-shrink:0;
+  background:linear-gradient(180deg,rgba(212,160,84,1) 0%,rgba(184,115,51,1) 50%,rgba(140,85,30,1) 100%);
+  box-shadow:
+    0 0 12px 3px rgba(184,115,51,.55),
+    0 0 4px 1px rgba(184,115,51,.4),
+    1px 0 0 rgba(255,220,140,.15) inset;
+}
+.jcard-inner{
+  flex:1;padding:12px 14px;min-width:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.025) 0%,transparent 40%);
+}
 .jcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
-.jcard-title{font-family:var(--ff-display);font-weight:700;font-size:16px;flex:1;min-width:0;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jcard-title{
+  font-family:var(--ff-display);font-weight:700;font-size:16px;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#F4F1EA;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
 .jcard-status{font-family:var(--ff-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;
   padding:2px 7px;border-radius:1px;flex-shrink:0;
   white-space:nowrap;align-self:flex-start;margin-top:2px}
@@ -650,7 +708,15 @@ img{display:block}
 .al-badge{font-family:var(--ff-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:1px;background:rgba(184,115,51,.18);color:#B87333;border:1px solid rgba(184,115,51,.35);white-space:nowrap;align-self:center;margin-right:12px;flex-shrink:0}
 .al-past .al-when,.al-past .al-title,.al-past .al-who{opacity:.38}
 #s-job-detail{padding:0}
-.jd-head{background:linear-gradient(135deg,#1A1612 0%,#2C1E08 100%);padding:20px 16px 16px;border-bottom:1px solid rgba(184,115,51,.25)}
+.jd-head{
+  background:linear-gradient(160deg,#2A1E0E 0%,#1F1710 40%,#1A1612 100%);
+  padding:20px 16px 16px;
+  border-bottom:1px solid rgba(184,115,51,.3);
+  box-shadow:
+    0 1px 0 rgba(255,220,140,.06) inset,
+    0 4px 20px rgba(0,0,0,.4),
+    0 0 30px rgba(184,115,51,.08);
+}
 .jd-title{font-family:var(--ff-display);font-weight:700;font-size:22px;color:#F4F1EA;margin-bottom:4px}
 .jd-meta{font-family:var(--ff-mono);font-size:11px;color:#B87333;opacity:.85;display:flex;gap:14px;flex-wrap:wrap}
 .jd-body{padding:14px}
@@ -2372,6 +2438,14 @@ async function openQuoteModal(cid) {
 async function renderJobs() {
   const jobs = await all('jobs');
   const el = document.getElementById('jlist');
+  // glowing top strip
+  const topStrip = document.getElementById('jobs-glow-strip');
+  if (!topStrip) {
+    const strip = document.createElement('div');
+    strip.id = 'jobs-glow-strip';
+    strip.style.cssText = 'height:2px;margin:-14px -14px 14px;background:linear-gradient(90deg,transparent 0%,rgba(184,115,51,.5) 25%,rgba(212,160,84,.9) 50%,rgba(184,115,51,.5) 75%,transparent 100%);box-shadow:0 0 14px 4px rgba(184,115,51,.35),0 0 4px 1px rgba(184,115,51,.5);';
+    document.getElementById('s-jobs').insertBefore(strip, document.getElementById('s-jobs').firstChild);
+  }
   if (!jobs.length) {
     el.innerHTML = `<div class="empty"><div class="empty-i">🏗️</div><div class="empty-t">No projects yet</div><div class="empty-s">Tap + New project to get started.</div></div>`;
     return;
