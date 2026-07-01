@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="17">
+  <meta name="app-version" content="18">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -258,25 +258,26 @@ img{display:block}
 .crow-bar{
   width:5px;flex-shrink:0;
   box-shadow:0 0 8px 2px var(--crow-accent,#8F7142), 0 0 2px 1px var(--crow-accent,#8F7142);
+  display:flex;align-items:center;justify-content:center;overflow:visible;
 }
+.crow-bar.has-star{width:20px}
 @keyframes neon-pulse{
   0%,100%{box-shadow:0 0 6px 2px var(--crow-accent,#8F7142), 0 0 2px 1px var(--crow-accent,#8F7142)}
   50%{box-shadow:0 0 16px 5px var(--crow-accent,#8F7142), 0 0 4px 2px var(--crow-accent,#8F7142)}
 }
 @keyframes star-pulse{
-  0%,100%{text-shadow:0 0 5px #A020C0,0 0 12px #8010A0,0 0 20px rgba(130,10,160,.5);transform:scale(1)}
-  50%{text-shadow:0 0 10px #D050F0,0 0 22px #B030D0,0 0 38px rgba(160,30,200,.9),0 0 55px rgba(120,0,160,.5);transform:scale(1.25)}
+  0%,100%{text-shadow:0 0 4px #FFD700,0 0 10px #FFA500,0 0 18px rgba(255,165,0,.55);transform:scale(1)}
+  50%{text-shadow:0 0 8px #FFD700,0 0 18px #FFA500,0 0 32px rgba(255,200,0,.8),0 0 50px rgba(255,140,0,.45);transform:scale(1.2)}
 }
 .crow-bar.glow{animation:neon-pulse 2.4s ease-in-out infinite}
 .crow-star{
-  display:inline-block;
-  font-size:15px;
-  color:#0A0008;
+  display:block;
+  font-size:13px;
+  color:#FFD700;
   animation:star-pulse 1.8s ease-in-out infinite;
   line-height:1;
-  margin-left:3px;
-  vertical-align:middle;
-  -webkit-text-stroke:0.5px rgba(180,80,220,.5);
+  -webkit-text-stroke:0.8px #B8860B;
+  text-align:center;
 }
 .crow-body{flex:1;padding:13px 14px;min-width:0}
 .crow-wrap{
@@ -1670,10 +1671,10 @@ async function renderHome() {
     <div class="crow-swipe-action" data-phone="${c.phone||''}" data-name="${esc(c.name)}">&#9742; Call</div>
     <div class="crow" data-id="${c.id}" style="--crow-accent:${cc.accent}">
       <div class="crow-handle" title="Drag to reorder">&#8801;</div>
-      <div class="crow-bar ${c.rating>=4?'glow':''}" style="background:${cc.accent}"></div>
+      <div class="crow-bar ${c.rating>=4?'glow has-star':''}" style="background:${cc.accent}">${c.rating>=4?'<span class="crow-star">&#9733;</span>':''}</div>
       <div class="crow-body">
         ${c.company?`<div class="crow-company">${esc(c.company)}</div>`:''}<div class="crow-top">
-          <span class="crow-name">${esc(c.name)}${c.rating>=4?'<span class="crow-star">&#9733;</span>':''}</span>
+          <span class="crow-name">${esc(c.name)}</span>
           <span class="crow-trade">${esc(c.trade||'')}${c.jobType?' · '+esc(c.jobType):''}</span>
           ${c.verified ? '<span class="vbadge">&#10003; Lic</span>' : ''}
         </div>
