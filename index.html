@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="12">
+  <meta name="app-version" content="13">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -532,6 +532,20 @@ img{display:block}
 .jcard-title{font-family:var(--ff-display);font-weight:700;font-size:18px;margin-bottom:6px}
 .jcard-meta{font-family:var(--ff-mono);font-size:11px;opacity:.45;display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .jcard-desc{font-size:13px;opacity:.6;line-height:1.5}
+#s-appts{padding:0}
+.al-section{padding:8px 14px 4px;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.4;}
+.al-card{
+  display:flex;gap:0;background:var(--paper);margin:0 0 1px;
+  cursor:pointer;transition:opacity .1s;
+}
+.al-card:active{opacity:.7}
+.al-bar{width:4px;flex-shrink:0}
+.al-body{flex:1;padding:12px 14px;min-width:0}
+.al-when{font-family:var(--ff-mono);font-size:11px;opacity:.5;margin-bottom:3px}
+.al-title{font-weight:600;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-who{font-family:var(--ff-mono);font-size:10px;opacity:.55;text-transform:uppercase;letter-spacing:.05em}
+.al-badge{font-family:var(--ff-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:1px;background:rgba(184,115,51,.18);color:#B87333;border:1px solid rgba(184,115,51,.35);white-space:nowrap;align-self:center;margin-right:12px;flex-shrink:0}
+.al-past .al-when,.al-past .al-title,.al-past .al-who{opacity:.38}
 #s-job-detail{padding:0}
 .jd-head{background:linear-gradient(135deg,#1A1612 0%,#2C1E08 100%);padding:20px 16px 16px;border-bottom:1px solid rgba(184,115,51,.25)}
 .jd-title{font-family:var(--ff-display);font-weight:700;font-size:22px;color:#F4F1EA;margin-bottom:4px}
@@ -1059,6 +1073,11 @@ img{display:block}
       <p id="share-status" style="text-align:center;font-family:var(--ff-mono);font-size:10px;opacity:.4;margin-top:12px;min-height:16px"></p>
     </div>
 
+    <!-- APPOINTMENTS -->
+    <div id="s-appts" class="screen">
+      <div id="appts-list"></div>
+    </div>
+
     <!-- SETTINGS -->
     <div id="s-settings" class="screen">
       <div class="ssec">
@@ -1107,6 +1126,10 @@ img{display:block}
     <button class="nbtn" data-sc="jobs">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="1"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       Projects
+    </button>
+    <button class="nbtn" data-sc="appts">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="15" r="1.2" fill="currentColor"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/><circle cx="16" cy="15" r="1.2" fill="currentColor"/></svg>
+      Appts
     </button>
     <button class="nbtn" data-sc="settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1457,6 +1480,12 @@ function go(screen, opts = {}) {
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'unused'));
     fab.classList.add('hidden');
     renderHome();
+
+  } else if (screen === 'appts') {
+    logo.innerHTML = 'Appointments';
+    applyColors('');
+    document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'appts'));
+    renderApptsList();
 
   } else if (screen === 'jobs') {
     logo.innerHTML = 'Projects';
@@ -2187,6 +2216,73 @@ async function renderJobs() {
   });
 }
 
+
+/* ═══════════════════════════════════════
+   ALL APPOINTMENTS
+═══════════════════════════════════════ */
+async function renderApptsList() {
+  const el = document.getElementById('appts-list');
+  const [allAppts, allContacts] = await Promise.all([all('appointments'), all('contacts')]);
+  const contactMap = Object.fromEntries(allContacts.map(c => [c.id, c]));
+  const now = new Date();
+
+  if (!allAppts.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-i">📅</div>'
+      + '<div class="empty-t">No appointments yet</div>'
+      + '<div class="empty-s">Add appointments from a a contact detail screen.</div></div>';
+    return;
+  }
+
+  // sort chronologically
+  allAppts.sort((a,b) => a.datetime > b.datetime ? 1 : -1);
+
+  const upcoming = allAppts.filter(a => new Date(a.datetime) >= now);
+  const past     = allAppts.filter(a => new Date(a.datetime) <  now);
+
+  function cardHTML(a, isPast) {
+    const ct = contactMap[a.cid];
+    if (!ct) return '';
+    const cc = col(ct.trade);
+    const dt = new Date(a.datetime);
+    const dateStr = dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+    const timeStr = dt.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="al-card' + (isPast?' al-past':'') + '" data-cid="' + ct.id + '" data-aid="' + a.id + '">'
+      + '<div class="al-bar" style="background:' + cc.accent + '"></div>'
+      + '<div class="al-body">'
+      + '<div class="al-when">' + dateStr + ' · ' + timeStr + '</div>'
+      + '<div class="al-title">' + esc(a.title) + '</div>'
+      + '<div class="al-who">' + esc(ct.name) + (ct.trade?' · '+esc(ct.trade):'') + '</div>'
+      + '</div>'
+      + (!isPast ? '<div class="al-badge">Upcoming</div>' : '')
+      + '</div>';
+  }
+
+  let html = '';
+  if (upcoming.length) {
+    html += '<div class="al-section">Upcoming</div>';
+    html += upcoming.map(a => cardHTML(a, false)).join('');
+  }
+  if (past.length) {
+    html += '<div class="al-section">Past</div>';
+    html += past.slice().reverse().map(a => cardHTML(a, true)).join('');
+  }
+  el.innerHTML = html;
+
+  // tap → go to that contact's detail
+  el.querySelectorAll('.al-card').forEach(card => {
+    card.onclick = async () => {
+      contact = await byId('contacts', card.dataset.cid);
+      if (contact) {
+        go('detail');
+        // switch to appts tab after render
+        setTimeout(() => {
+          const t = document.querySelector('.dtab[data-t="ap"]');
+          if (t) t.click();
+        }, 80);
+      }
+    };
+  });
+}
 
 /* ═══════════════════════════════════════
    JOB DETAIL
