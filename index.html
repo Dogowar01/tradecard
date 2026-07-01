@@ -525,6 +525,38 @@ img{display:block}
 .jd-sec{font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.5;margin:18px 0 8px}
 .jd-desc{font-size:14px;opacity:.7;line-height:1.6;padding:10px 12px;background:var(--paper);border-radius:2px;border:1px solid var(--line)}
 .jd-act{display:flex;gap:8px;margin-bottom:4px}
+.appt-card{
+  background:var(--paper);border-radius:2px;padding:12px 14px;
+  margin-bottom:8px;border-left:3px solid var(--tc-accent,#B87333);
+  display:flex;align-items:flex-start;gap:12px;
+}
+.appt-date{
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.05em;
+  text-transform:uppercase;opacity:.55;margin-bottom:3px;
+}
+.appt-title{font-weight:600;font-size:14px;margin-bottom:2px}
+.appt-notes{font-size:12px;opacity:.55;margin-top:4px}
+.appt-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.appt-cal{
+  font-family:var(--ff-mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;padding:4px 10px;
+  border:1px solid var(--tc-accent,#B87333);
+  color:var(--tc-accent,#B87333);background:none;
+  border-radius:1px;cursor:pointer;
+}
+.appt-del{
+  font-family:var(--ff-mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;padding:4px 10px;
+  border:1px solid rgba(192,57,43,.5);color:rgba(192,57,43,.8);
+  background:none;border-radius:1px;cursor:pointer;
+}
+.appt-upcoming{
+  display:inline-block;font-family:var(--ff-mono);font-size:9px;
+  letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 6px;border-radius:1px;margin-bottom:4px;
+  background:rgba(184,115,51,.2);color:#B87333;border:1px solid rgba(184,115,51,.4);
+}
+.appt-past{opacity:.5}
 .linked-empty{font-size:13px;opacity:.45;padding:12px 0;font-family:var(--ff-mono)}
 .jlink-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border-radius:2px;margin-bottom:6px;border:1px solid var(--line)}
 .jlink-card .jlink-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -839,6 +871,7 @@ img{display:block}
           <button class="dtab" data-t="qt">Quotes</button>
           <button class="dtab" data-t="ph">Photos</button>
           <button class="dtab" data-t="nt">Notes</button>
+          <button class="dtab" data-t="ap">Appts</button>
         </div>
       </div>
       <div class="dbody">
@@ -846,6 +879,7 @@ img{display:block}
         <div id="p-qt" class="dpanel"></div>
         <div id="p-ph" class="dpanel"></div>
         <div id="p-nt" class="dpanel"></div>
+        <div id="p-ap" class="dpanel"></div>
       </div>
     </div>
 
@@ -1334,7 +1368,7 @@ function iso(trade, size = 72) {
 let db;
 function openDB() {
   return new Promise((res,rej) => {
-    const r = indexedDB.open('tradecard', 1);
+    const r = indexedDB.open('tradecard', 2);
     r.onupgradeneeded = e => {
       const d = e.target.result;
       if (!d.objectStoreNames.contains('contacts')) {
@@ -1349,6 +1383,10 @@ function openDB() {
       if (!d.objectStoreNames.contains('photos')) {
         const p = d.createObjectStore('photos',{keyPath:'id'});
         p.createIndex('cid','cid');
+      }
+      if (!d.objectStoreNames.contains('appointments')) {
+        const a = d.createObjectStore('appointments',{keyPath:'id'});
+        a.createIndex('cid','cid');
       }
     };
     r.onsuccess = e => { db=e.target.result; res(db); };
@@ -1768,6 +1806,142 @@ async function renderDetail(c) {
     c.notes = document.getElementById('notesedit').value;
     await save('contacts', c); contact = c;
   };
+
+  // appointments
+  await renderAppts(c);
+}
+
+async function renderAppts(c) {
+  const appts = await byIdx('appointments','cid',c.id);
+  const now = new Date();
+  appts.sort((a,b) => a.datetime > b.datetime ? 1 : -1);
+
+  const panel = document.getElementById('p-ap');
+  if (!panel) return;
+
+  const html = appts.length ? appts.map(a => {
+    const dt = new Date(a.datetime);
+    const past = dt < now;
+    const dateStr = dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    const timeStr = dt.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="appt-card' + (past?' appt-past':'') + '" data-aid="' + a.id + '">'
+      + (!past ? '<div class="appt-upcoming">Upcoming</div><br>' : '')
+      + '<div>'
+      + '<div class="appt-date">' + dateStr + ' at ' + timeStr + '</div>'
+      + '<div class="appt-title">' + esc(a.title) + '</div>'
+      + (a.notes ? '<div class="appt-notes">' + esc(a.notes) + '</div>' : '')
+      + '<div class="appt-actions">'
+      + '<button class="appt-cal" data-aid="' + a.id + '">+ Add to calendar</button>'
+      + '<button class="appt-del" data-aid="' + a.id + '">Delete</button>'
+      + '</div></div></div>';
+  }).join('') : '<div class="linked-empty">No appointments yet.</div>';
+
+  panel.innerHTML =
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
+    + '<button class="btn btn-accent" id="btn-new-appt">+ New appointment</button>'
+    + '</div>' + html;
+
+  document.getElementById('btn-new-appt').onclick = () => openApptModal(c);
+
+  panel.querySelectorAll('.appt-cal').forEach(btn => {
+    btn.onclick = async () => {
+      const a = appts.find(x => x.id === btn.dataset.aid);
+      if (a) downloadICS(a, c);
+    };
+  });
+
+  panel.querySelectorAll('.appt-del').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Delete this appointment?')) return;
+      await drop('appointments', btn.dataset.aid);
+      await renderAppts(c);
+    };
+  });
+}
+
+function openApptModal(c) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const defaultDate = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+  const defaultTime = pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+  showModal('New appointment',
+    '<div class="fld"><label>Title</label>'
+    + '<input type="text" id="ap-title" placeholder="e.g. Site visit, Quote walkthrough" value="' + esc(c.name) + ' – Appointment"></div>'
+    + '<div class="fld"><label>Date</label><input type="date" id="ap-date" value="' + defaultDate + '"></div>'
+    + '<div class="fld"><label>Time</label><input type="time" id="ap-time" value="' + defaultTime + '"></div>'
+    + '<div class="fld"><label>Duration (minutes)</label><input type="number" id="ap-dur" value="60" min="15" step="15"></div>'
+    + '<div class="fld"><label>Notes</label><textarea id="ap-notes" style="min-height:56px" placeholder="Address, reminders…"></textarea></div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    + '<button class="btn btn-accent" id="btn-sap" style="flex:1">Save</button>'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '</div>'
+  );
+
+  document.getElementById('btn-sap').onclick = async () => {
+    const dateVal = document.getElementById('ap-date').value;
+    const timeVal = document.getElementById('ap-time').value;
+    const title   = document.getElementById('ap-title').value.trim();
+    if (!dateVal || !timeVal || !title) return;
+    const appt = {
+      id:       uid(),
+      cid:      c.id,
+      title,
+      datetime: dateVal + 'T' + timeVal,
+      duration: parseInt(document.getElementById('ap-dur').value)||60,
+      notes:    document.getElementById('ap-notes').value.trim(),
+      created:  new Date().toISOString(),
+    };
+    await save('appointments', appt);
+    closeModal();
+    await renderAppts(c);
+    // switch to appts tab
+    const apTab = document.querySelector('.dtab[data-t="ap"]');
+    if (apTab) apTab.click();
+  };
+}
+
+function downloadICS(appt, contact) {
+  const pad = n => String(n).padStart(2,'0');
+  const dt  = new Date(appt.datetime);
+  const end = new Date(dt.getTime() + (appt.duration||60)*60000);
+  const fmt = d =>
+    d.getUTCFullYear()
+    + pad(d.getUTCMonth()+1)
+    + pad(d.getUTCDate()) + 'T'
+    + pad(d.getUTCHours())
+    + pad(d.getUTCMinutes()) + '00Z';
+
+  const uid2 = appt.id + '@tradecard';
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Tradecard//EN',
+    'BEGIN:VEVENT',
+    'UID:' + uid2,
+    'DTSTAMP:' + fmt(new Date()),
+    'DTSTART:' + fmt(dt),
+    'DTEND:'   + fmt(end),
+    'SUMMARY:' + appt.title,
+    'DESCRIPTION:' + [contact.name, contact.trade, contact.phone].filter(Boolean).join(' | ')
+      + (appt.notes ? '\n' + appt.notes : ''),
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join(String.fromCharCode(13,10));
+
+  const blob = new Blob([lines], {type:'text/calendar;charset=utf-8'});
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: appt.title.replace(/\s+/g,'-').toLowerCase() + '.ics',
+  });
+  a.click();
+  // iOS Share fallback
+  if (navigator.share) {
+    const file = new File([blob], a.download, {type:'text/calendar'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      navigator.share({files:[file], title: appt.title});
+    }
+  }
 }
 
 function sr(key, val) {
@@ -2466,7 +2640,15 @@ function readFile(f) {
   await openDB();
   await populateTradeFilter();
   await renderHome();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r=>{r.update();}).catch(()=>{});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r=>{
+    r.update();
+    r.addEventListener('updatefound', () => {
+      const nw = r.installing;
+      nw.addEventListener('statechange', () => {
+        if (nw.state==='activated') window.location.reload();
+      });
+    });
+  }).catch(()=>{});
 })();
 
 function makeVCard(c) {
