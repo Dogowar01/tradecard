@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="26">
+  <meta name="app-version" content="27">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,8 +41,8 @@
   }, 2000);
 })();
 
-// Splash dismiss
-(function(){
+// Splash dismiss — must wait for DOM
+document.addEventListener('DOMContentLoaded', function(){
   var sp = document.getElementById('splash');
   if (!sp) return;
   if (sessionStorage.getItem('tc-splashed')) { sp.style.display='none'; return; }
@@ -51,7 +51,7 @@
     sp.classList.add('out');
     setTimeout(function(){ sp.style.display='none'; }, 700);
   }, 2000);
-})();
+});
 </script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">

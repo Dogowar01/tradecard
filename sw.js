@@ -1,6 +1,6 @@
-// build 26
+// build 27
 const CACHE = 'tradecard-v11';
-const SHELL = ['/index.html', '/manifest.json'];
+const SHELL = ['/index.html', '/manifest.json', '/splash.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
