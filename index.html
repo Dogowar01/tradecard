@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="15">
+  <meta name="app-version" content="16">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -227,6 +227,22 @@ img{display:block}
 .schip.on{opacity:1;border-color:#B87333;background:rgba(184,115,51,.35)}
 .schip#chip-eval.on{border-color:#9060C0;background:rgba(144,96,192,.35)}
 
+#dash-strip{
+  display:flex;gap:8px;padding:10px 14px 2px;flex-wrap:wrap;
+}
+.dchip{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:2px;
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.04em;
+  background:rgba(244,241,234,.07);border:1px solid rgba(244,241,234,.12);
+  cursor:default;
+}
+.dchip-n{font-size:16px;font-weight:700;color:#F4F1EA}
+.dchip-l{opacity:.6}
+.dchip.warn{border-color:rgba(192,57,43,.45);background:rgba(192,57,43,.1)}
+.dchip.warn .dchip-n{color:#e74c3c}
+.dchip.accent{border-color:rgba(184,115,51,.4);background:rgba(184,115,51,.12)}
+.dchip.accent .dchip-n{color:#B87333}
 #list{display:flex;flex-direction:column;gap:1px;background:rgba(0,0,0,.15);border-top:1px solid rgba(0,0,0,.2)}
 
 /* ─── Contact row ─────────────────────────────────────── */
@@ -263,6 +279,20 @@ img{display:block}
   -webkit-text-stroke:0.5px rgba(180,80,220,.5);
 }
 .crow-body{flex:1;padding:13px 14px;min-width:0}
+.crow-wrap{
+  position:relative;overflow:hidden;
+}
+.crow-swipe-action{
+  position:absolute;right:0;top:0;bottom:0;
+  width:80px;display:flex;align-items:center;justify-content:center;
+  background:#27ae60;color:#fff;
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  transform:translateX(80px);transition:transform .18s ease;
+  cursor:pointer;
+}
+.crow-wrap.swiped .crow-swipe-action{transform:translateX(0)}
+.crow-wrap.swiped .crow{transform:translateX(-80px);transition:transform .18s ease}
+.crow{transition:transform .18s ease}
 .crow-handle{
   display:none;
   align-items:center;
@@ -275,7 +305,21 @@ img{display:block}
   user-select:none;
   -webkit-user-select:none;
 }
-.sort-custom .crow-handle{display:flex}
+.sort-custom .crow-wrap{
+  position:relative;overflow:hidden;
+}
+.crow-swipe-action{
+  position:absolute;right:0;top:0;bottom:0;
+  width:80px;display:flex;align-items:center;justify-content:center;
+  background:#27ae60;color:#fff;
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  transform:translateX(80px);transition:transform .18s ease;
+  cursor:pointer;
+}
+.crow-wrap.swiped .crow-swipe-action{transform:translateX(0)}
+.crow-wrap.swiped .crow{transform:translateX(-80px);transition:transform .18s ease}
+.crow{transition:transform .18s ease}
+.crow-handle{display:flex}
 .crow.dragging{opacity:.35;transition:none}
 .crow.drag-over{box-shadow:0 -3px 0 0 #B87333}
 .drag-ghost{
@@ -883,7 +927,7 @@ img{display:block}
 <div id="shell">
   <div id="topbar">
     <button id="btn-back" style="display:none">&#8592;</button>
-    <div id="topbar-logo"><span class="logo-trade">Trade</span><span class="logo-card">card</span><span class="logo-by">by Signal9</span></div>
+    <div id="topbar-logo"><span class="logo-trade">trade</span><span class="logo-card">card</span><span class="logo-by"> by </span><span class="logo-signal">Signal</span><span class="logo-nine">9</span></div>
     <div id="topbar-actions"></div>
   </div>
 
@@ -901,6 +945,7 @@ img{display:block}
         <button class="schip" data-s="name">Name A–Z</button>
         <button class="schip" data-s="custom">Custom</button>
       </div>
+      <div id="dash-strip"></div>
       <div id="list"></div>
     </div>
 
@@ -1101,6 +1146,9 @@ img{display:block}
     <div id="s-settings" class="screen">
       <div class="ssec">
         <div class="stitle">Data</div>
+        <div id="export-reminder" style="display:none;background:rgba(184,115,51,.15);border:1px solid rgba(184,115,51,.35);border-radius:2px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.5">
+          ⚠ No backup in over 30 days — tap Export to save your data.
+        </div>
         <div class="srow2">
           <div><div class="srow2-lbl">Export backup</div><div class="srow2-sub">Download contacts &amp; jobs as JSON</div></div>
           <button class="btn btn-ghost" id="btn-export">Export</button>
@@ -1114,6 +1162,10 @@ img{display:block}
           <div><div class="srow2-lbl">Clear all data</div><div class="srow2-sub">Permanently delete everything</div></div>
           <button class="btn btn-danger" id="btn-clear">Clear</button>
         </div>
+      </div>
+      <div class="ssec">
+        <div class="stitle">Trade breakdown</div>
+        <div id="stats-trades"></div>
       </div>
       <div class="ssec">
         <div class="stitle">Reminders</div>
@@ -1487,7 +1539,7 @@ function go(screen, opts = {}) {
 
   if (screen === 'home') {
     evalView = false;
-    logo.innerHTML = '<span class="logo-trade">trade</span><span class="logo-card">card</span><span class="logo-by"> by </span><span class="logo-signal">Signal</span><span class="logo-nine">9</span>';
+    if(!logo.querySelector('.logo-nine'))logo.innerHTML='<span class="logo-trade">trade</span><span class="logo-card">card</span><span class="logo-by"> by </span><span class="logo-signal">Signal</span><span class="logo-nine">9</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'home'));
     renderHome();
@@ -1569,6 +1621,21 @@ document.getElementById('fab').onclick = () => openForm(null);
 ═══════════════════════════════════════ */
 async function renderHome() {
   const contacts = await all('contacts');
+  // dashboard strip (only on active/unused view)
+  if (!document.getElementById('srch').value && !document.getElementById('ftrade').value) {
+    const allAppts = await all('appointments');
+    const now = new Date(); const in7 = new Date(now.getTime()+7*864e5);
+    const upcoming = allAppts.filter(a=>{ const d=new Date(a.datetime); return d>=now&&d<=in7; });
+    const expiring = contacts.filter(c=>c.licExpiry&&new Date(c.licExpiry)<new Date(now.getTime()+30*864e5)&&new Date(c.licExpiry)>now);
+    const active   = contacts.filter(c=>c.status!=='eval');
+    const ds = document.getElementById('dash-strip');
+    if (ds && !evalView) {
+      ds.innerHTML =
+        '<div class="dchip"><span class="dchip-n">'+active.length+'</span><span class="dchip-l">contacts</span></div>'
+        +(upcoming.length?'<div class="dchip accent"><span class="dchip-n">'+upcoming.length+'</span><span class="dchip-l">appts this week</span></div>':'')
+        +(expiring.length?'<div class="dchip warn"><span class="dchip-n">'+expiring.length+'</span><span class="dchip-l">licence'+(expiring.length>1?'s':'')+' expiring</span></div>':'');
+    } else if (ds) { ds.innerHTML = ''; }
+  }
   const search = (document.getElementById('srch').value || '').toLowerCase();
   const tf = document.getElementById('ftrade').value;
 
@@ -1599,7 +1666,9 @@ async function renderHome() {
     ).join('');
     const wc = {yes:'wtag wyes',no:'wtag wno',maybe:'wtag wmb'}[c.would] || '';
     const wl = {yes:'Would use',no:"Wouldn't",maybe:'Maybe'}[c.would] || '';
-    return `<div class="crow" data-id="${c.id}" style="--crow-accent:${cc.accent}">
+    return `<div class="crow-wrap">
+    <div class="crow-swipe-action" data-phone="${c.phone||''}" data-name="${esc(c.name)}">&#9742; Call</div>
+    <div class="crow" data-id="${c.id}" style="--crow-accent:${cc.accent}">
       <div class="crow-handle" title="Drag to reorder">&#8801;</div>
       <div class="crow-bar ${c.rating>=4?'glow':''}" style="background:${cc.accent}"></div>
       <div class="crow-body">
@@ -1612,19 +1681,46 @@ async function renderHome() {
           <div class="mini-dots">${dots}</div>
           ${c.would ? `<span class="${wc}">${wl}</span>` : ''}
           ${c.verdict ? `<span class="crow-verdict">${esc(c.verdict)}</span>` : ''}
-          ${c.lastUsed ? `<span class="crow-date">${fmt(c.lastUsed)}</span>` : ''}
+          ${c.lastUsed ? `<span class="crow-date">${relFmt(c.lastUsed)}</span>` : ''}
         </div>
       </div>
       ${tradeIcon(c.trade) ? `<div class="crow-icon"><img src="${tradeIcon(c.trade)}" alt="" loading="lazy"></div>` : ''}
-    </div>`;
+    </div></div>`;
   }).join('');
 
   el.querySelectorAll('.crow').forEach(row => {
-    row.onclick = async () => {
+    let sx=0, swipeActive=false;
+    row.addEventListener('touchstart', e=>{sx=e.touches[0].clientX; swipeActive=true;},{passive:true});
+    row.addEventListener('touchmove', e=>{
+      if(!swipeActive) return;
+      const dx = e.touches[0].clientX - sx;
+      const wrap = row.closest('.crow-wrap');
+      if(dx < -40 && wrap) wrap.classList.add('swiped');
+      else if(dx > 20 && wrap) wrap.classList.remove('swiped');
+    },{passive:true});
+    row.addEventListener('touchend', ()=>{swipeActive=false;});
+    row.onclick = async (e) => {
+      const wrap = row.closest('.crow-wrap');
+      if(wrap && wrap.classList.contains('swiped')){wrap.classList.remove('swiped');return;}
       contact = await byId('contacts', row.dataset.id);
       go('detail');
     };
   });
+  // swipe action buttons
+  el.querySelectorAll('.crow-swipe-action').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const ph = btn.dataset.phone;
+      if(ph) window.location.href='tel:'+ph;
+      else { const wrap=btn.closest('.crow-wrap'); if(wrap)wrap.classList.remove('swiped'); }
+    };
+  });
+  // tap elsewhere to close any open swipe
+  el.addEventListener('touchstart', e=>{
+    if(!e.target.closest('.crow-wrap.swiped')){
+      document.querySelectorAll('.crow-wrap.swiped').forEach(w=>w.classList.remove('swiped'));
+    }
+  },{passive:true});
 
   if (sort === 'custom') wireDrag(el, list);
 }
@@ -1779,7 +1875,14 @@ async function renderDetail(c) {
   const wlabel = {yes:'Would use again ✓', no:"Wouldn't use again", maybe:'Maybe'}[c.would] || '—';
   const wcls   = {yes:'wyes', no:'wno', maybe:'wmb'}[c.would] || '';
 
-  document.getElementById('p-ov').innerHTML = `
+  // rating nudge — if used recently but not rated
+  const nudge = c.lastUsed && !c.rating && (Date.now()-new Date(c.lastUsed+'T00:00:00'))<45*864e5
+    ? '<div style="background:rgba(184,115,51,.15);border:1px solid rgba(184,115,51,.35);border-radius:2px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px">'
+      + '<span>You used <b>' + esc(c.name) + '</b> recently — how did they go?</span>'
+      + '<button class="btn btn-accent" style="font-size:11px;padding:5px 10px;white-space:nowrap" id="btn-rate-now">Rate now</button>'
+      + '</div>'
+    : '';
+  document.getElementById('p-ov').innerHTML = nudge + `
     ${c.verdict ? `<div class="verdict-card">"${esc(c.verdict)}"</div>` : ''}
     <div class="srow"><div class="skey">Rating</div>
       <div class="sval" style="display:flex;align-items:center;gap:10px">
@@ -1804,6 +1907,9 @@ async function renderDetail(c) {
       <button class="btn btn-danger" id="btn-del">Delete</button>
     </div>`;
 
+  if (document.getElementById('btn-rate-now')) {
+    document.getElementById('btn-rate-now').onclick = () => openForm(c.id);
+  }
   document.getElementById('btn-sc').onclick  = () => go('share');
   document.getElementById('btn-aq').onclick  = () => openQuoteModal(c.id);
   const etBtn = document.getElementById('btn-eval-toggle');
@@ -1891,8 +1997,9 @@ async function renderAppts(c) {
     const past = dt < now;
     const dateStr = dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     const timeStr = dt.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    const countdown = timeUntil(a.datetime);
     return '<div class="appt-card' + (past?' appt-past':'') + '" data-aid="' + a.id + '">'
-      + (!past ? '<div class="appt-upcoming">Upcoming</div><br>' : '')
+      + (!past ? '<div class="appt-upcoming">' + countdown + '</div><br>' : '')
       + '<div>'
       + '<div class="appt-date">' + dateStr + ' at ' + timeStr + '</div>'
       + '<div class="appt-title">' + esc(a.title) + '</div>'
@@ -2131,6 +2238,13 @@ document.getElementById('form').onsubmit = async e => {
   else         document.getElementById('err-trade').classList.remove('show');
   if (!ok) return;
 
+  // duplicate phone check
+  const phone = document.getElementById('f-phone').value.trim();
+  if (phone) {
+    const existing = await all('contacts');
+    const dup = existing.find(x => x.phone && x.phone.replace(/\s/g,'') === phone.replace(/\s/g,'') && x.id !== editId);
+    if (dup && !confirm('A contact with this number already exists (' + dup.name + '). Save anyway?')) return;
+  }
   const c = {
     id:           editId || uid(),
     name,
@@ -2225,7 +2339,7 @@ async function renderJobs() {
         ${linked?'· '+linked+' trade'+(linked===1?'':'s'):''}
       </div>
       ${j.description?`<div class="jcard-desc">${esc(j.description)}</div>`:''}
-    </div>`;
+    </div></div>`;
   }).join('');
   el.querySelectorAll('.jcard').forEach(card => {
     card.onclick = async () => {
@@ -2272,7 +2386,7 @@ async function renderApptsList() {
       + '<div class="al-title">' + esc(a.title) + '</div>'
       + '<div class="al-who">' + esc(ct.name) + (ct.trade?' · '+esc(ct.trade):'') + '</div>'
       + '</div>'
-      + (!isPast ? '<div class="al-badge">Upcoming</div>' : '')
+      + (!isPast ? '<div class="al-badge">' + timeUntil(a.datetime) + '</div>' : '')
       + '</div>';
   }
 
@@ -2345,7 +2459,9 @@ async function renderJobDetail(j) {
     + (j.description ? '<div class="jd-sec">Description</div><div class="jd-desc">' + esc(j.description) + '</div>' : '')
     + '<div class="jd-sec">Linked Trades</div>'
     + '<div id="jd-linked">' + linkedHTML + '</div>'
-    + '<button class="btn btn-ghost" style="width:100%;margin-top:8px" id="jd-btn-link">+ Link a trade</button>';
+    + '<button class="btn btn-ghost" style="width:100%;margin-top:8px" id="jd-btn-link">+ Link a trade</button>'
+    + '<div class="jd-sec" style="margin-top:18px">Quote Comparison</div>'
+    + '<div id="jd-quotes"><div class="linked-empty">Loading quotes…</div></div>';
 
   document.getElementById('jd-btn-edit').onclick = () => openJobModal(j);
 
@@ -2374,6 +2490,39 @@ async function renderJobDetail(j) {
       if (contact) go('detail');
     };
   });
+
+  // quote comparison table
+  (async () => {
+    const qEl = document.getElementById('jd-quotes');
+    if (!qEl || !validLinked.length) { if(qEl) qEl.innerHTML='<div class="linked-empty">Link contacts to see quote comparison.</div>'; return; }
+    const allQ = (await Promise.all(validLinked.map(ct=>byIdx('quotes','cid',ct.id)))).flat();
+    if (!allQ.length) { qEl.innerHTML='<div class="linked-empty">No quotes added yet for linked contacts.</div>'; return; }
+    // latest quote per contact
+    const latestByContact = validLinked.map(ct => {
+      const cq = allQ.filter(q=>q.cid===ct.id).sort((a,b)=>b.date>a.date?1:-1);
+      return {ct, q: cq[0]||null, count: cq.length};
+    }).filter(x=>x.q);
+    if(!latestByContact.length){qEl.innerHTML='<div class="linked-empty">No quotes yet.</div>';return;}
+    const sorted = [...latestByContact].sort((a,b)=>(Number(a.q.amount)||0)-(Number(b.q.amount)||0));
+    const min = Number(sorted[0].q.amount)||0;
+    const max = Number(sorted[sorted.length-1].q.amount)||1;
+    qEl.innerHTML = sorted.map(({ct,q,count})=>{
+      const cc=col(ct.trade);
+      const amt=Number(q.amount)||0;
+      const pct=max>min?Math.round((amt-min)/(max-min)*70+25):50;
+      return '<div style="margin-bottom:10px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'
+        +'<span style="font-weight:600;font-size:13px">'+esc(ct.name)+'</span>'
+        +'<span style="font-family:var(--ff-mono);font-size:13px;font-weight:700;color:'+cc.accent+'">$'+amt.toLocaleString()+'</span>'
+        +'</div>'
+        +'<div style="height:6px;border-radius:3px;background:rgba(244,241,234,.1);overflow:hidden">'
+        +'<div style="height:100%;width:'+pct+'%;background:'+cc.accent+';border-radius:3px"></div>'
+        +'</div>'
+        +'<div style="font-family:var(--ff-mono);font-size:10px;opacity:.45;margin-top:3px">'
+        +(q.date?fmt(q.date)+' · ':'')+(count>1?count+' quotes total':'1 quote')+(q.outcome?' · '+q.outcome:'')
+        +'</div></div>';
+    }).join('');
+  })();
 
   document.getElementById('jd-btn-link').onclick = async () => {
     const allContacts = await all('contacts');
@@ -2681,12 +2830,39 @@ document.getElementById('btn-share-txt').onclick = () => {
    SETTINGS
 ═══════════════════════════════════════ */
 async function renderSettings() {
+  // auto-export reminder
+  const lastExp = localStorage.getItem('tc-last-export');
+  const daysSince = lastExp ? Math.floor((Date.now()-new Date(lastExp))/864e5) : 999;
+  const expBanner = document.getElementById('export-reminder');
+  if (expBanner) expBanner.style.display = daysSince > 30 ? '' : 'none';
   const vEl = document.getElementById('ver-display');
   if (vEl) vEl.textContent = 'v' + (document.querySelector('meta[name="app-version"]').content||'?');
   const contacts = await all('contacts');
   const today = new Date();
   const expiring = contacts.filter(c => c.licExpiry && new Date(c.licExpiry)<new Date(today.getTime()+60*864e5));
   const el = document.getElementById('rem-list');
+  // trade breakdown
+  const active = contacts.filter(x=>x.status!=='eval');
+  const tradeCounts = {};
+  active.forEach(x=>{ tradeCounts[x.trade||'Other']=(tradeCounts[x.trade||'Other']||0)+1; });
+  const tradesSorted = Object.entries(tradeCounts).sort((a,b)=>b[1]-a[1]);
+  const maxCount = tradesSorted[0]?.[1]||1;
+  const statsEl = document.getElementById('stats-trades');
+  if (statsEl) statsEl.innerHTML = tradesSorted.length
+    ? tradesSorted.map(([trade,n])=>{
+        const cc=col(trade);
+        const pct=Math.round(n/maxCount*100);
+        return '<div style="margin-bottom:10px">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+          +'<span style="font-size:13px">'+esc(trade)+'</span>'
+          +'<span style="font-family:var(--ff-mono);font-size:12px;opacity:.6">'+n+'</span>'
+          +'</div>'
+          +'<div style="height:5px;border-radius:3px;background:rgba(244,241,234,.1);overflow:hidden">'
+          +'<div style="height:100%;width:'+pct+'%;background:'+cc.accent+';border-radius:3px;transition:width .4s ease"></div>'
+          +'</div></div>';
+      }).join('')
+    : '<div style="font-size:13px;opacity:.4;padding:8px 0">No contacts yet.</div>';
+
   el.innerHTML = expiring.length
     ? expiring.map(c=>`
         <div class="srow2">
@@ -2697,6 +2873,7 @@ async function renderSettings() {
 }
 
 document.getElementById('btn-export').onclick = async () => {
+  localStorage.setItem('tc-last-export', new Date().toISOString());
   const data = {version:2,exported:new Date().toISOString(),
     contacts:     await all('contacts'),
     jobs:         await all('jobs'),
@@ -2774,6 +2951,28 @@ document.getElementById('lb').onclick = e => {
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function relFmt(d) {
+  if (!d) return '';
+  const diff = Math.floor((Date.now() - new Date(d+'T00:00:00')) / 864e5);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7)  return diff + ' days ago';
+  if (diff < 14) return 'Last week';
+  if (diff < 60) return Math.floor(diff/7) + ' weeks ago';
+  if (diff < 365) return Math.floor(diff/30) + ' months ago';
+  return Math.floor(diff/365) + (Math.floor(diff/365)===1?' year':' years') + ' ago';
+}
+function timeUntil(dt) {
+  const diff = Math.floor((new Date(dt) - Date.now()) / 864e5);
+  if (diff < -1)  return Math.abs(diff) + ' days ago';
+  if (diff === -1) return 'Yesterday';
+  if (diff === 0)  return 'Today';
+  if (diff === 1)  return 'Tomorrow';
+  if (diff < 7)   return 'in ' + diff + ' days';
+  if (diff < 14)  return 'Next week';
+  if (diff < 60)  return 'in ' + Math.floor(diff/7) + ' weeks';
+  return 'in ' + Math.floor(diff/30) + ' months';
 }
 function fmt(d) {
   if (!d) return '';
