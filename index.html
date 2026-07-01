@@ -6,10 +6,25 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
+  <meta name="app-version" content="12">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script>
+(function(){
+  var v = document.querySelector('meta[name="app-version"]').content;
+  if (localStorage.getItem('tc-ver') !== v) {
+    localStorage.setItem('tc-ver', v);
+    if ('serviceWorker' in navigator && 'caches' in window) {
+      Promise.all([
+        caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))),
+        navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister())))
+      ]).then(() => window.location.reload());
+    }
+  }
+})();
+</script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -1069,7 +1084,11 @@ img{display:block}
       <div class="ssec">
         <div class="stitle">About</div>
         <div class="srow2">
-          <div><div class="srow2-lbl">Tradecard v1.0</div><div class="srow2-sub">Part of the Signal9 Apps family · dogowar01.github.io</div></div>
+          <div><div class="srow2-lbl">Tradecard <span id="ver-display"></span></div><div class="srow2-sub">Part of the Signal9 Apps family · dogowar01.github.io</div></div>
+        </div>
+        <div class="srow2">
+          <div><div class="srow2-lbl">App updates</div><div class="srow2-sub">Clears cache and reloads latest version</div></div>
+          <button class="btn btn-ghost" id="btn-forceupdate">Update now</button>
         </div>
       </div>
     </div>
@@ -2547,6 +2566,8 @@ document.getElementById('btn-share-txt').onclick = () => {
    SETTINGS
 ═══════════════════════════════════════ */
 async function renderSettings() {
+  const vEl = document.getElementById('ver-display');
+  if (vEl) vEl.textContent = 'v' + (document.querySelector('meta[name="app-version"]').content||'?');
   const contacts = await all('contacts');
   const today = new Date();
   const expiring = contacts.filter(c => c.licExpiry && new Date(c.licExpiry)<new Date(today.getTime()+60*864e5));
@@ -2561,10 +2582,11 @@ async function renderSettings() {
 }
 
 document.getElementById('btn-export').onclick = async () => {
-  const data = {version:1,exported:new Date().toISOString(),
-    contacts: await all('contacts'),
-    jobs:     await all('jobs'),
-    quotes:   await all('quotes')};
+  const data = {version:2,exported:new Date().toISOString(),
+    contacts:     await all('contacts'),
+    jobs:         await all('jobs'),
+    quotes:       await all('quotes'),
+    appointments: await all('appointments')};
   const a = Object.assign(document.createElement('a'),{
     href: URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),
     download: `tradecard-${new Date().toISOString().slice(0,10)}.json`});
@@ -2580,6 +2602,7 @@ document.getElementById('btn-import').onchange = async e => {
     for (const c of data.contacts) await save('contacts',c);
     for (const j of (data.jobs||[])) await save('jobs',j);
     for (const q of (data.quotes||[])) await save('quotes',q);
+    for (const a of (data.appointments||[])) await save('appointments',a);
     alert('Import complete!');
     renderHome(); populateTradeFilter();
   } catch(err) { alert('Import failed: '+err.message); }
@@ -2590,6 +2613,19 @@ document.getElementById('btn-clear').onclick = async () => {
   for (const j of await all('jobs'))     await drop('jobs',j.id);
   for (const q of await all('quotes'))   await drop('quotes',q.id);
   alert('Cleared.'); renderHome(); populateTradeFilter();
+};
+
+document.getElementById('btn-forceupdate').onclick = async () => {
+  localStorage.removeItem('tc-ver');
+  if ('caches' in window) {
+    const ks = await caches.keys();
+    await Promise.all(ks.map(k => caches.delete(k)));
+  }
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+  window.location.reload();
 };
 
 /* ═══════════════════════════════════════
