@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="16">
+  <meta name="app-version" content="17">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1621,8 +1621,8 @@ document.getElementById('fab').onclick = () => openForm(null);
 ═══════════════════════════════════════ */
 async function renderHome() {
   const contacts = await all('contacts');
-  // dashboard strip (only on active/unused view)
-  if (!document.getElementById('srch').value && !document.getElementById('ftrade').value) {
+  // dashboard strip — always show all chips, hide only in eval (unused trades) view
+  {
     const allAppts = await all('appointments');
     const now = new Date(); const in7 = new Date(now.getTime()+7*864e5);
     const upcoming = allAppts.filter(a=>{ const d=new Date(a.datetime); return d>=now&&d<=in7; });
@@ -1632,8 +1632,8 @@ async function renderHome() {
     if (ds && !evalView) {
       ds.innerHTML =
         '<div class="dchip"><span class="dchip-n">'+active.length+'</span><span class="dchip-l">contacts</span></div>'
-        +(upcoming.length?'<div class="dchip accent"><span class="dchip-n">'+upcoming.length+'</span><span class="dchip-l">appts this week</span></div>':'')
-        +(expiring.length?'<div class="dchip warn"><span class="dchip-n">'+expiring.length+'</span><span class="dchip-l">licence'+(expiring.length>1?'s':'')+' expiring</span></div>':'');
+        +'<div class="dchip'+(upcoming.length?' accent':'')+'"><span class="dchip-n">'+upcoming.length+'</span><span class="dchip-l">appts this week</span></div>'
+        +'<div class="dchip'+(expiring.length?' warn':'')+'"><span class="dchip-n">'+expiring.length+'</span><span class="dchip-l">'+(expiring.length===1?'licence expiring':'licences expiring')+'</span></div>';
     } else if (ds) { ds.innerHTML = ''; }
   }
   const search = (document.getElementById('srch').value || '').toLowerCase();
