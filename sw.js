@@ -1,4 +1,4 @@
-const CACHE = 'tradecard-v10';
+const CACHE = 'tradecard-v11';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icons/'];
 
 self.addEventListener('install', e => {
