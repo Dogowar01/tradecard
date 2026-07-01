@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="20">
+  <meta name="app-version" content="21">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -441,14 +441,19 @@ img{display:block}
 .sval{flex:1;font-size:14px;line-height:1.5}
 
 .verdict-card{
+  display:flex;align-items:stretch;
   background:var(--bg);
-  border-left:3px solid var(--tc-accent);
-  padding:12px 14px;
-  font-size:14px;line-height:1.65;
-  font-style:italic;
-  margin-bottom:14px;
-  border-radius:0 2px 2px 0;
+  margin-bottom:14px;border-radius:2px;overflow:hidden;
   transition:border-color .25s;
+}
+.verdict-bar{
+  width:5px;flex-shrink:0;
+  background:var(--tc-accent,#B87333);
+  box-shadow:0 0 8px 2px var(--tc-accent,rgba(184,115,51,.6)),0 0 2px 1px var(--tc-accent,rgba(184,115,51,.4));
+}
+.verdict-body{
+  flex:1;padding:12px 14px;
+  font-size:14px;line-height:1.65;font-style:italic;
 }
 
 .bigdots{display:flex;gap:6px;align-items:center}
@@ -474,12 +479,17 @@ img{display:block}
 
 /* Quotes */
 .qitem{
+  display:flex;align-items:stretch;
   background:var(--bg);
-  border-radius:2px;
-  padding:13px 14px;margin-bottom:8px;
-  border-left:3px solid var(--tc-accent);
-  transition:border-color .25s;
+  border-radius:2px;margin-bottom:8px;
+  overflow:hidden;transition:border-color .25s;
 }
+.qitem-bar{
+  width:5px;flex-shrink:0;
+  background:var(--tc-accent,#B87333);
+  box-shadow:0 0 8px 2px var(--tc-accent,rgba(184,115,51,.6)),0 0 2px 1px var(--tc-accent,rgba(184,115,51,.4));
+}
+.qitem-body{flex:1;padding:13px 14px;min-width:0}
 .qamt{
   font-family:var(--ff-mono);font-size:20px;
   font-weight:500;color:var(--tc-accent);
@@ -648,10 +658,16 @@ img{display:block}
 .jd-desc{font-size:14px;opacity:.7;line-height:1.6;padding:10px 12px;background:var(--paper);border-radius:2px;border:1px solid var(--line)}
 .jd-act{display:flex;gap:8px;margin-bottom:4px}
 .appt-card{
-  background:var(--paper);border-radius:2px;padding:12px 14px;
-  margin-bottom:8px;border-left:3px solid var(--tc-accent,#B87333);
-  display:flex;align-items:flex-start;gap:12px;
+  display:flex;align-items:stretch;
+  background:var(--paper);border-radius:2px;
+  margin-bottom:8px;overflow:hidden;
 }
+.appt-bar{
+  width:5px;flex-shrink:0;
+  background:var(--tc-accent,#B87333);
+  box-shadow:0 0 8px 2px var(--tc-accent,rgba(184,115,51,.6)),0 0 2px 1px var(--tc-accent,rgba(184,115,51,.4));
+}
+.appt-body{flex:1;padding:12px 14px;min-width:0}
 .appt-date{
   font-family:var(--ff-mono);font-size:11px;letter-spacing:.05em;
   text-transform:uppercase;opacity:.55;margin-bottom:3px;
@@ -1914,7 +1930,7 @@ async function renderDetail(c) {
       + '</div>'
     : '';
   document.getElementById('p-ov').innerHTML = nudge + `
-    ${c.verdict ? `<div class="verdict-card">"${esc(c.verdict)}"</div>` : ''}
+    ${c.verdict ? `<div class="verdict-card"><div class="verdict-bar"></div><div class="verdict-body">"${esc(c.verdict)}"</div></div>` : ''}
     <div class="srow"><div class="skey">Rating</div>
       <div class="sval" style="display:flex;align-items:center;gap:10px">
         <div class="bigdots">${dots}</div>
@@ -1968,12 +1984,12 @@ async function renderDetail(c) {
       <button class="btn btn-accent" id="btn-aq2">+ Add quote</button>
     </div>
     ${quotes.length ? quotes.sort((a,b)=>b.date>a.date?1:-1).map(q=>`
-      <div class="qitem">
+      <div class="qitem"><div class="qitem-bar"></div><div class="qitem-body">
         <div class="qamt">$${q.amount ? Number(q.amount).toLocaleString() : '—'}</div>
         <div class="qmeta">${q.date?fmt(q.date):''} ${q.responseTime?'· Response: '+esc(q.responseTime):''}</div>
         ${q.notes ? `<div style="font-size:13px;margin-top:5px;opacity:.65">${esc(q.notes)}</div>` : ''}
         ${q.outcome ? `<span class="qoutcome ${q.outcome==='accepted'?'oa':q.outcome==='declined'?'od':'on2'}">${q.outcome}</span>` : ''}
-      </div>`).join('')
+      </div></div>`).join('')
     : '<div class="empty"><div class="empty-i">💰</div><div class="empty-t">No quotes</div></div>'}`;
   document.getElementById('btn-aq2').onclick = () => openQuoteModal(c.id);
 
@@ -2030,8 +2046,9 @@ async function renderAppts(c) {
     const timeStr = dt.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
     const countdown = timeUntil(a.datetime);
     return '<div class="appt-card' + (past?' appt-past':'') + '" data-aid="' + a.id + '">'
-      + (!past ? '<div class="appt-upcoming">' + countdown + '</div><br>' : '')
-      + '<div>'
+      + '<div class="appt-bar"></div>'
+      + '<div class="appt-body">'
+      + (!past ? '<div class="appt-upcoming">' + countdown + '</div>' : '')
       + '<div class="appt-date">' + dateStr + ' at ' + timeStr + '</div>'
       + '<div class="appt-title">' + esc(a.title) + '</div>'
       + (a.notes ? '<div class="appt-notes">' + esc(a.notes) + '</div>' : '')
@@ -2429,7 +2446,7 @@ async function renderApptsList() {
     const dateStr = dt.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
     const timeStr = dt.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
     return '<div class="al-card' + (isPast?' al-past':'') + '" data-cid="' + ct.id + '" data-aid="' + a.id + '">'
-      + '<div class="al-bar" style="background:' + cc.accent + '"></div>'
+      + '<div class="al-bar" style="background:' + cc.accent + ';box-shadow:0 0 8px 2px ' + cc.accent + '88,0 0 2px 1px ' + cc.accent + '55"></div>'
       + '<div class="al-body">'
       + '<div class="al-when">' + dateStr + ' · ' + timeStr + '</div>'
       + '<div class="al-title">' + esc(a.title) + '</div>'
