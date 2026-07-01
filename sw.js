@@ -1,4 +1,4 @@
-// build 14
+// build 15
 const CACHE = 'tradecard-v11';
 const SHELL = ['/index.html', '/manifest.json'];
 

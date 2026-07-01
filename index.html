@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="14">
+  <meta name="app-version" content="15">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1494,26 +1494,26 @@ function go(screen, opts = {}) {
 
   } else if (screen === 'unused') {
     evalView = true;
-    logo.innerHTML = 'Unused Trades';
+    logo.innerHTML = '<span class="logo-trade">Unused </span><span class="logo-card">Trades</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'unused'));
     fab.classList.add('hidden');
     renderHome();
 
   } else if (screen === 'appts') {
-    logo.innerHTML = 'Appointments';
+    logo.innerHTML = '<span class="logo-trade">Appoint</span><span class="logo-card">ments</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'appts'));
     renderApptsList();
 
   } else if (screen === 'jobs') {
-    logo.innerHTML = 'Projects';
+    logo.innerHTML = '<span class="logo-trade">Pro</span><span class="logo-card">jects</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'jobs'));
     renderJobs();
 
   } else if (screen === 'settings') {
-    logo.innerHTML = 'Settings';
+    logo.innerHTML = '<span class="logo-trade">Set</span><span class="logo-card">tings</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'settings'));
     renderSettings();
@@ -1535,7 +1535,7 @@ function go(screen, opts = {}) {
   } else if (screen === 'form') {
     back.style.display = 'flex';
     nav.style.display  = 'none';
-    logo.innerHTML = editId ? 'Edit contact' : 'New contact';
+    logo.innerHTML = editId ? '<span class="logo-trade">Edit </span><span class="logo-card">contact</span>' : '<span class="logo-trade">New </span><span class="logo-card">contact</span>';
     document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
 
   } else if (screen === 'job-detail') {
@@ -1548,7 +1548,7 @@ function go(screen, opts = {}) {
   } else if (screen === 'share') {
     back.style.display = 'flex';
     nav.style.display  = 'none';
-    logo.innerHTML = 'Share card';
+    logo.innerHTML = '<span class="logo-trade">Share </span><span class="logo-card">card</span>';
     applyColors(contact.trade);
     renderShare(contact);
   }
