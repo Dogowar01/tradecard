@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="13">
+  <meta name="app-version" content="14">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -104,20 +104,39 @@ img{display:block}
   display:flex;align-items:baseline;gap:0;
 }
 .logo-trade{
-  color:#F4F1EA;
-  text-shadow:0 0 18px rgba(244,241,234,.35);
+  color:#E8D5B8;
   letter-spacing:-.02em;
 }
 .logo-card{
-  background:linear-gradient(135deg, #C8882A 0%, #E8B86D 50%, #C8882A 100%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  text-shadow:none;
-  font-style:italic;
+  color:#E8720C;
   letter-spacing:-.03em;
-  padding-right:4px;
-  display:inline-block;
+  font-style:italic;
+  padding-right:3px;
+}
+.logo-by{
+  font-family:var(--ff-body);
+  font-weight:400;
+  font-size:11px;
+  color:rgba(244,241,234,.5);
+  letter-spacing:.01em;
+  padding:0 4px 0 2px;
+  align-self:center;
+}
+.logo-signal{
+  font-family:var(--ff-body);
+  font-weight:600;
+  font-size:12px;
+  color:#F4F1EA;
+  letter-spacing:.01em;
+  align-self:center;
+}
+.logo-nine{
+  font-family:var(--ff-body);
+  font-weight:700;
+  font-size:12px;
+  color:#E8720C;
+  letter-spacing:.01em;
+  align-self:center;
 }
 .logo-by{
   opacity:.38;font-weight:400;margin-left:8px;font-size:11px;
@@ -1468,7 +1487,7 @@ function go(screen, opts = {}) {
 
   if (screen === 'home') {
     evalView = false;
-    logo.innerHTML = 'Tradecard <span>by Signal9</span>';
+    logo.innerHTML = '<span class="logo-trade">trade</span><span class="logo-card">card</span><span class="logo-by"> by </span><span class="logo-signal">Signal</span><span class="logo-nine">9</span>';
     applyColors('');
     document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('on', b.dataset.sc === 'home'));
     renderHome();
