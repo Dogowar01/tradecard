@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="19">
+  <meta name="app-version" content="20">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -601,15 +601,30 @@ img{display:block}
 /* ─── JOBS ────────────────────────────────────────────── */
 #s-jobs{padding:14px}
 .jcard{
+  display:flex;align-items:stretch;
   background:var(--paper);border-radius:2px;
-  padding:14px;margin-bottom:8px;cursor:pointer;
-  border-left:3px solid #B87333;
-  transition:box-shadow .12s;
+  margin-bottom:8px;cursor:pointer;
+  transition:box-shadow .12s;overflow:hidden;
 }
-.jcard:hover{box-shadow:0 2px 12px rgba(74,39,64,.1)}
-.jcard-title{font-family:var(--ff-display);font-weight:700;font-size:18px;margin-bottom:6px}
-.jcard-meta{font-family:var(--ff-mono);font-size:11px;opacity:.45;display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-.jcard-desc{font-size:13px;opacity:.6;line-height:1.5}
+.jcard:hover{box-shadow:0 2px 14px rgba(74,39,64,.15)}
+.jcard-bar{width:5px;flex-shrink:0;background:#B87333;
+  box-shadow:0 0 8px 2px rgba(184,115,51,.4),0 0 2px 1px rgba(184,115,51,.3);}
+.jcard-inner{flex:1;padding:12px 14px;min-width:0}
+.jcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.jcard-title{font-family:var(--ff-display);font-weight:700;font-size:16px;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jcard-status{font-family:var(--ff-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 7px;border-radius:1px;flex-shrink:0;
+  white-space:nowrap;align-self:flex-start;margin-top:2px}
+.jcard-status.js-active{background:rgba(39,174,96,.18);color:#27ae60;border:1px solid rgba(39,174,96,.35)}
+.jcard-status.js-upcoming{background:rgba(184,115,51,.18);color:#D4A054;border:1px solid rgba(184,115,51,.4)}
+.jcard-status.js-done{background:rgba(244,241,234,.08);color:rgba(244,241,234,.45);border:1px solid rgba(244,241,234,.15)}
+.jcard-status.js-open{background:rgba(52,152,219,.15);color:#5dade2;border:1px solid rgba(52,152,219,.3)}
+.jcard-meta{font-family:var(--ff-mono);font-size:10px;color:rgba(244,241,234,.55);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.jcard-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.jcard-pill{font-family:var(--ff-mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+  padding:2px 6px;border-radius:1px;}
+.jcard-desc{font-size:12px;opacity:.55;line-height:1.45;margin-top:4px}
 #s-appts{padding:0}
 .al-section{padding:8px 14px 4px;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.4;}
 .al-card{
@@ -665,11 +680,12 @@ img{display:block}
 }
 .appt-past{opacity:.5}
 .linked-empty{font-size:13px;opacity:.45;padding:12px 0;font-family:var(--ff-mono)}
-.jlink-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border-radius:2px;margin-bottom:6px;border:1px solid var(--line)}
-.jlink-card .jlink-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.jlink-card .jlink-info{flex:1;min-width:0}
-.jlink-card .jlink-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.jlink-card .jlink-sub{font-family:var(--ff-mono);font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.05em}
+.jlink-card{display:flex;align-items:stretch;background:var(--paper);
+  border-radius:2px;margin-bottom:6px;border:1px solid var(--line);overflow:hidden;}
+.jlink-bar{width:4px;flex-shrink:0}
+.jlink-card .jlink-info{flex:1;min-width:0;padding:9px 10px}
+.jlink-card .jlink-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jlink-card .jlink-sub{font-family:var(--ff-mono);font-size:9px;opacity:.5;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
 .jlink-card .jlink-rm{background:none;border:none;color:rgba(244,241,234,.3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0}
 .jlink-card .jlink-rm:hover{color:#c0392b}
 .jname{font-family:var(--ff-display);font-weight:600;font-size:15px;margin-bottom:4px}
@@ -2344,17 +2360,35 @@ async function renderJobs() {
     return;
   }
   const sorted = jobs.sort((a,b)=>b.created>a.created?1:-1);
+  const now2 = new Date();
   el.innerHTML = sorted.map(j=>{
     const linked = (j.contactIds||[]).length;
+    const ds2 = j.dateStart ? new Date(j.dateStart+'T00:00:00') : null;
+    const de2 = j.dateEnd   ? new Date(j.dateEnd+'T00:00:00')   : null;
+    let statusCls='', statusLbl='';
+    if (de2 && de2 < now2)        { statusCls='js-done';     statusLbl='Completed'; }
+    else if (ds2 && ds2 > now2)   { statusCls='js-upcoming'; statusLbl='Upcoming'; }
+    else if (ds2)                  { statusCls='js-active';   statusLbl='Active'; }
+    else                           { statusCls='js-open';     statusLbl='Open'; }
+    const metaParts = [];
+    if (j.dateStart) metaParts.push((ds2?fmt(j.dateStart):'')+' → '+(j.dateEnd?fmt(j.dateEnd):'ongoing'));
+    if (j.budget) metaParts.push('$'+Number(j.budget).toLocaleString());
+    const pillsHTML = linked
+      ? '<div class="jcard-pills"><span class="jcard-pill" style="background:rgba(184,115,51,.15);color:#D4A054;border:1px solid rgba(184,115,51,.35)">'
+        +linked+' trade'+(linked===1?'':'s')+' linked</span></div>'
+      : '<div class="jcard-pills"><span class="jcard-pill" style="background:rgba(244,241,234,.06);color:rgba(244,241,234,.35);border:1px solid rgba(244,241,234,.12)">no trades linked</span></div>';
     return `<div class="jcard" data-jid="${j.id}">
-      <div class="jcard-title">${esc(j.title)}</div>
-      <div class="jcard-meta">
-        ${j.dateStart?fmt(j.dateStart)+' → '+(j.dateEnd?fmt(j.dateEnd):'ongoing'):''}
-        ${j.budget?'· $'+Number(j.budget).toLocaleString():''}
-        ${linked?'· '+linked+' trade'+(linked===1?'':'s'):''}
+      <div class="jcard-bar"></div>
+      <div class="jcard-inner">
+        <div class="jcard-top">
+          <div class="jcard-title">${esc(j.title)}</div>
+          <span class="jcard-status ${statusCls}">${statusLbl}</span>
+        </div>
+        ${metaParts.length?'<div class="jcard-meta">'+metaParts.join(' &nbsp;·&nbsp; ')+'</div>':''}
+        ${pillsHTML}
+        ${j.description?'<div class="jcard-desc">'+esc(j.description)+'</div>':''}
       </div>
-      ${j.description?`<div class="jcard-desc">${esc(j.description)}</div>`:''}
-    </div></div>`;
+    </div>`;
   }).join('');
   el.querySelectorAll('.jcard').forEach(card => {
     card.onclick = async () => {
@@ -2455,12 +2489,14 @@ async function renderJobDetail(j) {
           ? ' <span style="opacity:.5;font-size:12px">\xb7 ' + esc(ct.company) + '</span>'
           : '';
         const subStr = esc(ct.trade||'') + (ct.jobType ? ' \xb7 ' + esc(ct.jobType) : '');
+        const dots = [1,2,3,4,5].map(i=>'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:2px;background:'+(i<=(ct.rating||0)?cc.accent:'rgba(244,241,234,.15)')+'"></span>').join('');
         return '<div class="jlink-card" data-cid="' + ct.id + '">'
-          + '<div class="jlink-dot" style="background:' + cc.accent + '"></div>'
+          + '<div class="jlink-bar" style="background:' + cc.accent + ';box-shadow:0 0 6px ' + cc.accent + '55"></div>'
           + '<div class="jlink-info">'
           + '<div class="jlink-name">' + esc(ct.name) + compSpan + '</div>'
-          + '<div class="jlink-sub">' + subStr + '</div>'
+          + '<div class="jlink-sub" style="display:flex;align-items:center;gap:6px">' + subStr + '<span style="margin-left:4px">' + dots + '</span></div>'
           + '</div>'
+          + (ct.trade?'<span style="font-family:var(--ff-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:1px;background:'+cc.base+'44;color:'+cc.accent+';border:1px solid '+cc.accent+'44;align-self:center;margin-right:4px;white-space:nowrap">'+esc(ct.trade)+'</span>':'')
           + '<button class="jlink-rm" data-rm="' + ct.id + '">&times;</button>'
           + '</div>';
       }).join('')
@@ -2474,7 +2510,7 @@ async function renderJobDetail(j) {
     + (j.description ? '<div class="jd-sec">Description</div><div class="jd-desc">' + esc(j.description) + '</div>' : '')
     + '<div class="jd-sec">Linked Trades</div>'
     + '<div id="jd-linked">' + linkedHTML + '</div>'
-    + '<button class="btn btn-ghost" style="width:100%;margin-top:8px" id="jd-btn-link">+ Link a trade</button>'
+    + '<button class="btn btn-accent" style="width:100%;margin-top:8px;letter-spacing:.04em" id="jd-btn-link">&#128279; Link a Tradesperson</button>'
     + '<div class="jd-sec" style="margin-top:18px">Quote Comparison</div>'
     + '<div id="jd-quotes"><div class="linked-empty">Loading quotes…</div></div>';
 
@@ -2552,17 +2588,20 @@ async function renderJobDetail(j) {
     }
     const listHTML = available.map(ct => {
       const cc = col(ct.trade);
-      const compSpan = ct.company ? ' <span style="opacity:.5;font-size:12px">\xb7 ' + esc(ct.company) + '</span>' : '';
-      const subStr = esc(ct.trade||'') + (ct.jobType ? ' \xb7 ' + esc(ct.jobType) : '');
-      return '<div class="jlink-card" data-cid="' + ct.id + '" style="cursor:pointer;margin-bottom:6px">'
-        + '<div class="jlink-dot" style="background:' + cc.accent + '"></div>'
+      const dots2 = [1,2,3,4,5].map(i=>'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:2px;background:'+(i<=(ct.rating||0)?cc.accent:'rgba(244,241,234,.15)')+'"></span>').join('');
+      return '<div class="jlink-card" data-cid="' + ct.id + '" style="cursor:pointer">'
+        + '<div class="jlink-bar" style="background:' + cc.accent + ';box-shadow:0 0 6px ' + cc.accent + '55"></div>'
         + '<div class="jlink-info">'
-        + '<div class="jlink-name">' + esc(ct.name) + compSpan + '</div>'
-        + '<div class="jlink-sub">' + subStr + '</div>'
-        + '</div></div>';
+        + '<div class="jlink-name">' + esc(ct.name) + (ct.company?'<span style="opacity:.5;font-size:11px"> · '+esc(ct.company)+'</span>':'') + '</div>'
+        + '<div class="jlink-sub" style="display:flex;align-items:center;gap:6px">'+(ct.trade?esc(ct.trade):'No trade')+(ct.jobType?' · '+esc(ct.jobType):'')
+        + '<span style="margin-left:4px">' + dots2 + '</span></div>'
+        + '</div>'
+        + (ct.trade?'<span style="font-family:var(--ff-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:1px;background:'+cc.base+'44;color:'+cc.accent+';border:1px solid '+cc.accent+'44;align-self:center;margin-right:10px;white-space:nowrap">'+esc(ct.trade)+'</span>':'')
+        + '</div>';
     }).join('');
-    showModal('Link a trade',
-      '<input type="search" id="link-srch" placeholder="Search…" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--ink);font-family:var(--ff-body);font-size:14px;margin-bottom:10px;box-sizing:border-box">'
+    showModal('Link a Tradesperson',
+      '<p style="font-family:var(--ff-mono);font-size:11px;opacity:.5;margin:0 0 10px;letter-spacing:.03em">Tap a contact to link them to this project</p>'
+      + '<input type="search" id="link-srch" placeholder="Search by name or trade…" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--ink);font-family:var(--ff-body);font-size:14px;margin-bottom:10px;box-sizing:border-box">'
       + '<div id="link-list" style="max-height:50vh;overflow-y:auto">' + listHTML + '</div>'
       + '<button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="closeModal()">Cancel</button>'
     );
