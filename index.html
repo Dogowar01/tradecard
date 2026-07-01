@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="27">
+  <meta name="app-version" content="28">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,12 +45,16 @@
 document.addEventListener('DOMContentLoaded', function(){
   var sp = document.getElementById('splash');
   if (!sp) return;
-  if (sessionStorage.getItem('tc-splashed')) { sp.style.display='none'; return; }
-  sessionStorage.setItem('tc-splashed','1');
-  setTimeout(function(){
+  // show it
+  sp.style.display = 'flex';
+  function dismiss() {
     sp.classList.add('out');
     setTimeout(function(){ sp.style.display='none'; }, 700);
-  }, 2000);
+  }
+  // tap anywhere to skip early
+  sp.addEventListener('click', dismiss);
+  // auto-dismiss after 2s
+  setTimeout(dismiss, 2000);
 });
 </script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -81,7 +85,8 @@ document.addEventListener('DOMContentLoaded', function(){
 /* ─── Splash ─────────────────────────────────────────── */
 #splash{
   position:fixed;inset:0;z-index:9999;
-  display:flex;flex-direction:column;
+  display:none;
+  flex-direction:column;
   align-items:center;justify-content:center;
   background:#0E0C09;
   transition:opacity .7s ease;
