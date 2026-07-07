@@ -6,7 +6,7 @@
 <title>Tradecard</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1A1612">
-  <meta name="app-version" content="31">
+  <meta name="app-version" content="32">
 <link rel="icon" type="image/png" href="icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2255,14 +2255,16 @@ async function renderDetail(c) {
   document.getElementById('btn-aq').onclick  = () => openQuoteModal(c.id);
   const etBtn = document.getElementById('btn-eval-toggle');
   if(etBtn){
-    etBtn.textContent = c.status==='eval' ? 'Mark as Used' : 'Move to Unused';
-    etBtn.style.cssText += c.status==='eval' ? ';border-color:#9060C0;color:#9060C0' : '';
+    const wasEval = c.status==='eval';
+    etBtn.textContent = wasEval ? 'Move to Contacts' : 'Move to Unused';
+    etBtn.style.cssText += wasEval ? ';border-color:#9060C0;color:#9060C0' : '';
     etBtn.onclick = async () => {
       c.status = c.status==='eval' ? 'active' : 'eval';
-      await put('contacts', c);
+      await save('contacts', c);
       contact = c;
-      renderHome();
-      go('detail');
+      populateTradeFilter();
+      // land on the tab the contact just moved TO so the move is visible
+      go(c.status==='eval' ? 'unused' : 'home');
     };
   }
   document.getElementById('btn-del').onclick = async () => {
